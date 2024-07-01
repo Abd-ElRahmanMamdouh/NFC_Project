@@ -1,0 +1,9 @@
+body {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+.dropdown-footer {
+    display: none !important;
+    visibility: hidden !important;
+}

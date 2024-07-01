@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% trans 'Home' %}
+{% endblock %}
+{% block content %}
+
+
+{% if user.user_admin %}
+    {% include 'base/dashboard.html' %}
+{% else %}
+    {% include 'base/regular_user.html' %}
+{% endif %}
+
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+{% trans 'My account' %}
+{% endblock %}
+{% block content %}
+
+
+<div class="container mt-5 pt-5">
+    <a href="{% url 'users:account_update' %}" class="btn primary-btn">
+        <i class="fas fa-edit"></i>{% trans 'Edit' %}
+    </a>
+    <div class="card w-100 mt-3">
+        <div class="card-body">
+            <p>{% trans "Username" %}: {{ user.username }}</p>
+            <p>{% trans "Email" %}:
+                {% if user.email %}
+                {{ user.email }}
+                {% else %}
+                <span class="text-danger">{% trans 'not specified' %}</span>
+                {% endif %}
+            </p>
+            <p>{% trans "Full name" %}:
+                {% if user.full_name %}
+                {{ user.full_name }}
+                {% else %}
+                <span class="text-danger">{% trans 'not specified' %}</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
