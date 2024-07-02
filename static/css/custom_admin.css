@@ -7,3 +7,8 @@ body {
     display: none !important;
     visibility: hidden !important;
 }
+
+.djn-checkbox-select-all {
+    padding-right: 130px !important;
+    width: 0;
+  }

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
     # Project Apps
     'users.apps.UsersConfig',
+    'services.apps.ServicesConfig',
 
     # at the end to apply jazzmin theme
     'django.contrib.admin',
@@ -112,16 +113,7 @@ if DEBUG:
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 

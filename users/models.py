@@ -21,7 +21,10 @@ class CustomUser(AbstractUser):
         verbose_name_plural = "Users"
 
     def __str__(self):
-        return self.username
+        if self.username:
+            return self.username
+        else:
+            return self.email
 
     @property
     def user_admin(self):
