@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     # Project Apps
     'users.apps.UsersConfig',
     'services.apps.ServicesConfig',
+    'cards.apps.CardsConfig',
 
     # at the end to apply jazzmin theme
     'django.contrib.admin',
