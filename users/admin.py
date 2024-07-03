@@ -2,17 +2,34 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import PermissionDenied
+from import_export.admin import ExportMixin
+from import_export.fields import Field
+from import_export.resources import ModelResource
+from import_export.widgets import ManyToManyWidget
+from cards.models import NFCCard
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 from .models import AuthToken
 
 User = get_user_model()
 
 
+class UserResource(ModelResource):
+    cards = Field(
+        column_name='cards',
+        attribute='user_cards',
+        widget=ManyToManyWidget(NFCCard, field='uuid')        
+    )
+    class Meta:
+        fields = ('username', 'email', 'cards', 'first_name', 'last_name', 'role')
+        model = User
+
+
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
+class CustomUserAdmin(ExportMixin, UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
+    resource_class = UserResource
     list_display = [
         "__str__",
         "email",
@@ -68,6 +85,6 @@ class CustomUserAdmin(UserAdmin):
         super().save_model(request, obj, form, change)
 
 
-@admin.register(AuthToken)
-class AuthTokenAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'token']
+# @admin.register(AuthToken)
+# class AuthTokenAdmin(admin.ModelAdmin):
+#     list_display = ['__str__', 'token']

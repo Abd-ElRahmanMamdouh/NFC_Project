@@ -42,10 +42,10 @@ INSTALLED_APPS = [
     'jazzmin',
     'crispy_forms',
     'crispy_bootstrap5',
+    'import_export',
 
     # Project Apps
     'users.apps.UsersConfig',
-    'services.apps.ServicesConfig',
     'cards.apps.CardsConfig',
 
     # at the end to apply jazzmin theme
@@ -192,6 +192,14 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 CRISPY_FAIL_SILENTLY = not DEBUG
 
+# Import Export Settings
+IMPORT_EXPORT_USE_TRANSACTIONS = True
+from import_export.formats.base_formats import CSV, XLSX
+IMPORT_EXPORT_FORMATS = [
+    CSV,
+    XLSX,
+]
+
 # Jazzmin Settings
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
@@ -254,23 +262,23 @@ JAZZMIN_SETTINGS = {
     "navigation_expanded": False,
 
     # Hide these apps when generating side menu e.g (auth)
-    "hide_apps": [],
+    "hide_apps": ["auth"],
 
     # Hide these models when generating side menu (e.g auth.user)
     "hide_models": [],
 
     # List of apps (and/or models) to base side menu ordering off of (does not need to contain all apps/models)
-    "order_with_respect_to": ["auth",],# "books", "books.author", "books.book"],
+    "order_with_respect_to": ["users", "cards"], #"books.author", "books.book"],
 
     # Custom links to append to app groups, keyed on app name
-    # "custom_links": {
-    #     "books": [{
-    #         "name": "Make Messages", 
-    #         "url": "make_messages", 
-    #         "icon": "fas fa-comments",
-    #         "permissions": ["books.view_book"]
-    #     }]
-    # },
+    "custom_links": {
+        "users": [{
+            "name": "Permissions Groups", 
+            "url": "admin:auth_group_changelist", 
+            "icon": "fas fa-users-cog",
+            "permissions": ["auth.view_user"]
+        }]
+    },
 
     # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free
     # for a list of icon classes
@@ -279,6 +287,11 @@ JAZZMIN_SETTINGS = {
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
         "users.CustomUser": "fas fa-users",
+        "users.AuthToken": "fas fa-users",
+        "cards.Product": "fas fa-shopping-bag",
+        "cards.ProductGroup": "fas fa-money-bill-wave",
+        "cards.NFCCard": "fas fa-credit-card",
+        "cards.PurchasingCode": "fas fa-dollar-sign",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",

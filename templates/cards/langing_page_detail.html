@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    {% trans 'Home' %}
+{% endblock %}
+{% block content %}
+
+
+
+<div class="d-flex flex-row align-items-center">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-12 text-center">
+                <h5 class="display-1">Testing Landing Page</h5>
+                <h3>This is a test page for Card: <br>
+                     <span class="text-success">{{ card }}</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
