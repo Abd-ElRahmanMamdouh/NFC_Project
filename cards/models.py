@@ -1,4 +1,3 @@
-import uuid
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -68,7 +67,7 @@ class NFCCard(models.Model):
         blank=True,
         null=True,
     )
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    uuid = models.UUIDField(default="", editable=False, unique=True)
     created_at = models.DateTimeField("Created at", auto_now_add=True)
     updated_at = models.DateTimeField("Updated at", auto_now=True)
 
@@ -81,7 +80,7 @@ class NFCCard(models.Model):
         return str(self.uuid)
 
     def get_absolute_url(self):
-        return reverse('cards:landing_page', args=[self.uuid])
+        return reverse("cards:landing_page", args=[self.uuid])
 
 
 class PurchasingCode(models.Model):
