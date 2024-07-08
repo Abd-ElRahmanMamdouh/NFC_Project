@@ -3,7 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-
+from PIL import Image
 
 ROLE_CHOICES = [
     ("admin", "Admin User"),
@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(
         "Role", choices=ROLE_CHOICES, max_length=50, default="regular"
     )
+    image = models.ImageField("Image", upload_to="users/images", null=True, blank=True)
 
     class Meta:
         verbose_name = "User"
@@ -26,11 +27,16 @@ class CustomUser(AbstractUser):
         else:
             return self.email
 
-    @property
-    def user_admin(self):
-        if self.role == "admin":
-            return True
-        return False
+    def save(self, *args, **kwargs):
+        super(CustomUser, self).save()
+        """reduce image size before upload to server"""
+        if self.image:
+            basewidth = 350
+            img = Image.open(self.image)
+            wpercent = basewidth / float(img.size[0])
+            hsize = int((float(img.size[1]) * float(wpercent)))
+            img = img.resize((basewidth, hsize), Image.ANTIALIAS)
+            img.save(self.image.path)
 
 
 class AuthToken(models.Model):

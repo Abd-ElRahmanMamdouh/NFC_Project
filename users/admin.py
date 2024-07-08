@@ -15,12 +15,13 @@ User = get_user_model()
 
 class UserResource(ModelResource):
     cards = Field(
-        column_name='cards',
-        attribute='user_cards',
-        widget=ManyToManyWidget(NFCCard, field='uuid')        
+        column_name="cards",
+        attribute="user_cards",
+        widget=ManyToManyWidget(NFCCard, field="uuid"),
     )
+
     class Meta:
-        fields = ('username', 'email', 'cards', 'first_name', 'last_name', 'role')
+        fields = ("username", "email", "cards", "first_name", "last_name", "role")
         model = User
 
 
@@ -41,7 +42,7 @@ class CustomUserAdmin(ExportMixin, UserAdmin):
     list_filter = ["is_staff", "is_superuser"]
     fieldsets = (
         ("Login info", {"fields": ("username", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Personal info", {"fields": ("first_name", "last_name", "image")}),
         ("Contact info", {"fields": ("email",)}),
         (
             "Permissions",
@@ -54,17 +55,26 @@ class CustomUserAdmin(ExportMixin, UserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "username", "role", "password1", "password2"),
+                "fields": (
+                    "email",
+                    "username",
+                    "role",
+                    "image",
+                    "password1",
+                    "password2",
+                ),
             },
         ),
     )
     search_fields = ("email", "username")
     ordering = ("email",)
 
-    def change_view(self, request, object_id, form_url='', extra_context=None):
+    def change_view(self, request, object_id, form_url="", extra_context=None):
         user = User.objects.get(pk=object_id)
         if user.is_superuser and not request.user.is_superuser:
-            raise PermissionDenied("You do not have permission to edit superuser accounts.")
+            raise PermissionDenied(
+                "You do not have permission to edit superuser accounts."
+            )
         return super().change_view(request, object_id, form_url, extra_context)
 
     def has_change_permission(self, request, obj=None):
@@ -73,15 +83,21 @@ class CustomUserAdmin(ExportMixin, UserAdmin):
         return super().has_change_permission(request, obj)
 
     def save_model(self, request, obj, form, change):
-        if obj == request.user and 'is_superuser' in form.changed_data:
+        if obj == request.user and "is_superuser" in form.changed_data:
             raise PermissionDenied("You cannot change your own superuser status.")
-        if not request.user.is_superuser and 'is_superuser' in form.changed_data:
-            raise PermissionDenied("You do not have permission to edit superuser status.")
+        if not request.user.is_superuser and "is_superuser" in form.changed_data:
+            raise PermissionDenied(
+                "You do not have permission to edit superuser status."
+            )
         if obj.pk == 1:
-            if 'is_superuser' in form.changed_data and 'is_superuser' not in form.data:
-                raise PermissionDenied("You cannot change superuser status for this account.")
-            if 'is_staff' in form.changed_data and 'is_staff' not in form.data:
-                raise PermissionDenied("You cannot change staff status for this account.")
+            if "is_superuser" in form.changed_data and "is_superuser" not in form.data:
+                raise PermissionDenied(
+                    "You cannot change superuser status for this account."
+                )
+            if "is_staff" in form.changed_data and "is_staff" not in form.data:
+                raise PermissionDenied(
+                    "You cannot change staff status for this account."
+                )
         super().save_model(request, obj, form, change)
 
 

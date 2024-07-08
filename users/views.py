@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, DetailView, UpdateView
 
 from .forms import CustomLoginForm, RegisterForm, UserDetailChangeForm
@@ -49,12 +49,20 @@ class RegisterView(SuccessMessageMixin, CreateView):
 
 class CustomLoginView(LoginView):
     form_class = CustomLoginForm
+    redirect_authenticated_user = True
 
     def form_valid(self, form):
         response = super().form_valid(form)
         token = create_token(self.request.user)
         self.request.session['auth_token'] = str(token)
         return response
+
+    def get_redirect_url(self):
+        if self.request.user.is_staff:
+            url = reverse("admin:index")
+        else:
+            url = reverse("home")
+        return url
 
 
 class CustomLogoutView(LogoutView):

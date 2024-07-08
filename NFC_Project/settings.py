@@ -183,7 +183,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 # Custom Usersettings
 AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_URL = 'users:login'
-LOGIN_REDIRECT_URL = '/'
+#LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'users:login'
 AUTHENTICATION_BACKENDS = ['users.backends.EmailBackend']
 
@@ -206,6 +206,7 @@ JAZZMIN_SETTINGS = {
     "site_title": "Dashboard",
     # Title on the brand, and login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_header": "NFC Project",
+    "site_brand": "NFC Project",
 
     # square logo to use for your site, must be present in static files, used for favicon and brand on top left
     "site_logo": "img/favicon.ico",
@@ -220,7 +221,7 @@ JAZZMIN_SETTINGS = {
     #"search_model": "auth.User",
 
     # Field name on user model that contains avatar image
-    "user_avatar": None,
+    "user_avatar": "image",
 
     ############
     # Top Menu #

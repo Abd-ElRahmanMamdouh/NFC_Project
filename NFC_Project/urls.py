@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from core.views import handler500, home
+from core.views import handler500, home, custom_admin_index
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -25,6 +25,7 @@ admin.site.index_title = "Website Managment"
 admin.site.site_header = "NFC Project"
 
 urlpatterns = [
+    path('admin/', custom_admin_index, name='custom_admin_index'),
     path('admin/', admin.site.urls),
     path('', include('users.urls')),
     path('accounts/', include('users.passwords.urls')),
