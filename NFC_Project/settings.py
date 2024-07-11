@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     # Project Apps
     'users.apps.UsersConfig',
     'cards.apps.CardsConfig',
+    'settings.apps.SettingsConfig',
+    'archive.apps.ArchiveConfig',
 
     # at the end to apply jazzmin theme
     'django.contrib.admin',
@@ -278,7 +280,17 @@ JAZZMIN_SETTINGS = {
             "url": "admin:auth_group_changelist", 
             "icon": "fas fa-users-cog",
             "permissions": ["auth.view_user"]
-        }]
+        }],
+        "cards": [
+            {"name": "URL Generator", 
+            "url": "admin:url_bulk", 
+            "icon": "fas fa-magic",
+            "permissions": ["auth.view_user"]},
+            {"name": "Code Generator", 
+            "url": "admin:code_bulk", 
+            "icon": "fas fa-magic",
+            "permissions": ["auth.view_user"]},
+        ]
     },
 
     # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free
@@ -289,10 +301,11 @@ JAZZMIN_SETTINGS = {
         "auth.Group": "fas fa-users",
         "users.CustomUser": "fas fa-users",
         "users.AuthToken": "fas fa-users",
-        "cards.Product": "fas fa-shopping-bag",
-        "cards.ProductGroup": "fas fa-money-bill-wave",
+        "settings.ProductGroup": "fas fa-shopping-bag",
+        "settings.LinkDuration": "fas fa-stopwatch",
         "cards.NFCCard": "fas fa-credit-card",
         "cards.PurchasingCode": "fas fa-dollar-sign",
+        "archive.Batch": "far fa-file-archive",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
@@ -309,7 +322,7 @@ JAZZMIN_SETTINGS = {
     #############
     # Relative paths to custom CSS/JS scripts (must be present in static files)
     "custom_css": 'css/custom_admin.css',
-    "custom_js": 'js/custom_admin.js',
+    "custom_js": None,
     # Whether to show the UI customizer on the sidebar
     "show_ui_builder": False,
 

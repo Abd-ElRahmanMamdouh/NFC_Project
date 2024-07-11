@@ -17,6 +17,7 @@ def handler500(request):
     return render(request, "500.html", status=500)
 
 
+@login_required
 def custom_admin_index(request, extra_context=None):
     url_count = NFCCard.objects.count()
     code_count = PurchasingCode.objects.count()

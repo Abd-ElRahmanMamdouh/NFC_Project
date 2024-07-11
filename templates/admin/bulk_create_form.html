@@ -1,11 +1,11 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static jazzmin %}
+{% load crispy_forms_tags %}
 {% get_jazzmin_ui_tweaks as jazzmin_ui %}
 
 {% block bodyclass %}{{ block.super }} dashboard{% endblock %}
 
 {% block content_title %} {% trans 'Dashboard' %} {% endblock %}
-
 
 {% block breadcrumbs %}
     <ol class="breadcrumb float-sm-right">
@@ -14,6 +14,7 @@
     </ol>
 {% endblock %}
 
+
 {% block content %}
     {% get_side_menu using="app_list" as dashboard_list %}
     {% if dashboard_list %}
@@ -21,30 +22,15 @@
     {% endif %}
 
     <div class="col-lg-9 col-12">
-        <div class="row">
-            <div class="col-md-6 col-sm-12">
-                <div class="card card-primary card-outline text-center">
-                    <div class="card-header">
-                        <h5 class="m-0">URL's Generated</h5>
-                    </div>
-                    <div class="card-body">
-                        <h1>{{ url_count }}</h1>
-                    </div>
-                </div>
+        <h1>{{ title }}</h1>
+        <form method="post" class="card">{% csrf_token %}
+            <div class="card-body">
+                {{ form|crispy }}
+                <input type="submit" name="apply" value="Apply" class="btn btn-outline-success">
             </div>
-            <div class="col-md-6 col-sm-12">
-                <div class="card card-primary card-outline text-center">
-                    <div class="card-header">
-                        <h5 class="m-0">Purchasing Codes Generated</h5>
-                    </div>
-                    <div class="card-body">
-                        <h1>{{ code_count }}</h1>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        </form>
     </div>
+
     <div class="col-lg-3 col-12">
         <div id="content-related">
             <div class="module" id="recent-actions-module">
@@ -107,4 +93,5 @@
             </div>
         </div>
     </div>
+
 {% endblock %}

@@ -1,61 +1,12 @@
-from decimal import Decimal
-
+from archive.models import CodeBatch, URLBatch
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
+from settings.models import PRODUCTS_CHOICES, LinkDuration, ProductGroup
+from core.utils import unique_code_generator, unique_password_generator
 
 User = get_user_model()
 
-
-class Product(models.Model):
-    title = models.CharField("Title", max_length=500)
-    price = models.DecimalField(
-        "Price",
-        blank=True,
-        null=True,
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00"))],
-    )
-    created_at = models.DateTimeField("Created at", auto_now_add=True)
-    updated_at = models.DateTimeField("Updated at", auto_now=True)
-
-    class Meta:
-        verbose_name = "Products"
-        verbose_name_plural = "Products"
-        ordering = ("-created_at",)
-
-    def __str__(self):
-        return self.title
-
-    def get_related_objects(self):
-        return self.product_groups.all()
-
-
-class ProductGroup(models.Model):
-    title = models.CharField("Title", max_length=500)
-    price = models.DecimalField(
-        "Price",
-        blank=True,
-        null=True,
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00"))],
-    )
-    products = models.ManyToManyField(
-        Product, blank=True, related_name="product_groups"
-    )
-    created_at = models.DateTimeField("Created at", auto_now_add=True)
-    updated_at = models.DateTimeField("Updated at", auto_now=True)
-
-    class Meta:
-        verbose_name = "Group"
-        verbose_name_plural = "Product Groups"
-        ordering = ("-created_at",)
-
-    def __str__(self):
-        return self.title
 
 
 class NFCCard(models.Model):
@@ -68,6 +19,14 @@ class NFCCard(models.Model):
         null=True,
     )
     uuid = models.UUIDField(default="", editable=False, unique=True)
+    batch = models.ForeignKey(
+        URLBatch,
+        related_name="batch_urls",
+        verbose_name="Batch",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
     created_at = models.DateTimeField("Created at", auto_now_add=True)
     updated_at = models.DateTimeField("Updated at", auto_now=True)
 
@@ -99,6 +58,14 @@ class PurchasingCode(models.Model):
         max_length=120,
         help_text="automatically generated",
     )
+    batch = models.ForeignKey(
+        CodeBatch,
+        related_name="batch_codes",
+        verbose_name="Batch",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
     group = models.ForeignKey(
         ProductGroup,
         related_name="group_codes",
@@ -107,8 +74,8 @@ class PurchasingCode(models.Model):
         blank=True,
         null=True,
     )
-    extra_products = models.ManyToManyField(
-        Product, blank=True, related_name="product_codes", verbose_name="Extra Products"
+    product = models.CharField(
+        "Product", blank=True, null=True, max_length=500, choices=PRODUCTS_CHOICES
     )
     card = models.OneToOneField(
         NFCCard,
@@ -117,6 +84,13 @@ class PurchasingCode(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
+    )
+    duration = models.ForeignKey(
+        LinkDuration,
+        verbose_name="Duration",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     created_at = models.DateTimeField("Created at", auto_now_add=True)
     updated_at = models.DateTimeField("Updated at", auto_now=True)
@@ -128,3 +102,9 @@ class PurchasingCode(models.Model):
 
     def __str__(self):
         return self.code
+
+    def generate_code_and_password(self):
+        if not self.code:
+            self.code = unique_code_generator(self)
+        if not self.password:
+            self.password = unique_password_generator(self)

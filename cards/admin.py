@@ -1,12 +1,18 @@
+import uuid
+
+from archive.models import CodeBatch, URLBatch
 from django.contrib import admin, messages
+from django.contrib.admin import site
 from django.contrib.auth import get_user_model
-from import_export.admin import ExportMixin
-from import_export.fields import Field
-from import_export.resources import ModelResource
-from import_export.widgets import ManyToManyWidget
+from django.shortcuts import redirect, render
+from django.urls import path
 from django.utils.safestring import mark_safe
-from .forms import PurchasingCodeForm
-from .models import NFCCard, Product, ProductGroup, PurchasingCode
+from import_export.admin import ExportMixin
+from import_export.resources import ModelResource
+from settings.models import ProductGroup
+from core.utils import unique_code_generator, unique_password_generator
+from .forms import CodeBulkCreateForm, URLBulkCreateForm
+from .models import NFCCard, PurchasingCode
 
 User = get_user_model()
 
@@ -17,46 +23,52 @@ class NFCCardResource(ModelResource):
         model = NFCCard
 
 
-class ProductResource(ModelResource):
-    groups = Field(
-        column_name="groups",
-        attribute="product_groups",
-        widget=ManyToManyWidget(ProductGroup, field="title"),
-    )
-
+class PurchasingCodeResource(ModelResource):
     class Meta:
-        fields = ("title", "price", "groups", "created_at", "updated_at")
-        model = Product
-
-
-class ProductGroupResource(ModelResource):
-    products = Field(
-        column_name="products",
-        attribute="products",
-        widget=ManyToManyWidget(Product, field="title"),
-    )
-
-    class Meta:
-        fields = ("title", "price", "products", "created_at", "updated_at")
-        model = ProductGroup
-
-
-class PurchasingCodeInline(admin.StackedInline):
-    model = PurchasingCode
-    filter_horizontal = ("extra_products",)
-    verbose_name_plural = "Purchasing Code"
-    readonly_fields = ["code", "password"]
-    can_delete = False
-    form = PurchasingCodeForm
+        fields = ("group__title", 'poduct', "card__uuid", "duration__duration", "code", "passwod", "created_at", "updated_at")
+        model = PurchasingCode
 
 
 @admin.register(NFCCard)
 class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
-    inlines = [PurchasingCodeInline]
     list_display = ["__str__", "get_url", "card_code", "created_at", "updated_at"]
     fields = ["uuid", "user"]
-    readonly_fields = ["user", "uuid"]
+    readonly_fields = ["uuid", "batch"]
     resource_class = NFCCardResource
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('create-url-batch/', self.bulk_create_view, name='url_bulk'),
+        ]
+        return custom_urls + urls
+
+    def bulk_create_view(self, request):
+        if request.method == 'POST':
+            form = URLBulkCreateForm(request.POST)
+            if form.is_valid():
+                count = form.cleaned_data['count']
+                user = request.user
+                batch = URLBatch.objects.create(count=count, user=user)
+                instances = [NFCCard(uuid=uuid.uuid4(), batch=batch) for _ in range(count)]
+                NFCCard.objects.bulk_create(instances)
+
+                self.message_user(request, f'Successfully created {count} URLS.', messages.SUCCESS)
+                return redirect('admin:archive_urlbatch_changelist')
+
+        else:
+            form = URLBulkCreateForm()
+
+        extra_context = {
+            'title': 'Create URL Batch',
+            'form': form,
+        }
+        context = {
+            **site.each_context(request),
+            **extra_context,
+        }
+        return render(request, 'admin/bulk_create_form.html', context)
+
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -64,7 +76,6 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
         return self.readonly_fields
 
     def get_url(self, obj):
-        print(obj.get_absolute_url())
         url = obj.get_absolute_url()
         url_button = f'<a href="{ url }">View On Site</a>'
         return mark_safe(url_button)
@@ -72,29 +83,60 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
     get_url.short_description = "URL"
 
 
-@admin.register(ProductGroup)
-class ProductGroupAdmin(ExportMixin, admin.ModelAdmin):
-    list_display = ["__str__", "price", "created_at", "updated_at"]
-    filter_horizontal = ("products",)
-    resource_class = ProductGroupResource
+@admin.register(PurchasingCode)
+class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
+    list_display = ["__str__", "created_at", "updated_at"]
+    fields = ["group", "product", "duration", "card", "code", "password"]
+    readonly_fields = ["code", "password", "card"]
+    resource_class = PurchasingCodeResource
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('create-code-batch/', self.bulk_create_view, name='code_bulk'),
+        ]
+        return custom_urls + urls
 
-@admin.register(Product)
-class ProductAdmin(ExportMixin, admin.ModelAdmin):
-    list_display = ["__str__", "price", "created_at", "updated_at"]
-    actions = None
-    resource_class = ProductResource
+    def bulk_create_view(self, request):
+        if request.method == 'POST':
+            form = CodeBulkCreateForm(request.POST)
+            if form.is_valid():
+                count = form.cleaned_data['count']
+                product = form.cleaned_data['product']
+                duration = form.cleaned_data['duration']
+                try:
+                    group = ProductGroup.objects.get(id=product)
+                except ProductGroup.DoesNotExist:
+                    group = None
+                except ValueError:
+                    group = None
+                user = request.user
+                batch = CodeBatch.objects.create(count=count, user=user)
+                if group:
+                    instances = []
+                    for _ in range(count):
+                        instance = PurchasingCode(group=group, duration=duration, batch=batch)
+                        instance.generate_code_and_password()
+                        instances.append(instance)
+                else:
+                    instances = []
+                    for _ in range(count):
+                        instance = PurchasingCode(product=product, duration=duration, batch=batch)
+                        instance.generate_code_and_password()
+                        instances.append(instance)
+                PurchasingCode.objects.bulk_create(instances)
+                self.message_user(request, f'Successfully created {count} Purchasing Codes.', messages.SUCCESS)
+                return redirect('admin:archive_codebatch_changelist')
 
-    def delete_view(self, request, object_id, extra_context=None):
-        obj = self.get_object(request, object_id)
-        related_objects = obj.get_related_objects()
+        else:
+            form = CodeBulkCreateForm()
 
-        if related_objects.exists():
-            message = (
-                f"The product '{obj}' is related to the following Groups: "
-                f"{', '.join(str(related_obj) for related_obj in related_objects)}. "
-                f"Deleting it will also remove it from these groups."
-            )
-            self.message_user(request, message, level=messages.WARNING)
-
-        return super().delete_view(request, object_id, extra_context=extra_context)
+        extra_context = {
+            'title': 'Create Purchasing Code Batch',
+            'form': form,
+        }
+        context = {
+            **site.each_context(request),
+            **extra_context,
+        }
+        return render(request, 'admin/bulk_create_form.html', context)
