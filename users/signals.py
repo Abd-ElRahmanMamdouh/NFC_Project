@@ -57,6 +57,9 @@ def assign_permissions(sender, instance, **kwargs):
             'add_nfccard',
             'change_nfccard',
             'view_nfccard',
+            'add_urlbatch',
+            'change_urlbatch',
+            'view_urlbatch',
         ]
     elif role == "artist":
         user.is_staff = True
@@ -67,6 +70,12 @@ def assign_permissions(sender, instance, **kwargs):
             'add_purchasingcode',
             'change_purchasingcode',
             'view_purchasingcode',
+            'add_codebatch',
+            'change_codebatch',
+            'view_codebatch',
+            'add_urlbatch',
+            'change_urlbatch',
+            'view_urlbatch',
         ]
     elif role == "administrator":
         user.is_staff = True

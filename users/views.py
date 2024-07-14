@@ -58,7 +58,7 @@ class CustomLoginView(LoginView):
         return response
 
     def get_redirect_url(self):
-        if self.request.user.is_staff:
+        if self.request.user.is_staff or self.request.user.is_superuser:
             url = reverse("admin:index")
         else:
             url = reverse("home")

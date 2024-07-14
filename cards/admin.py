@@ -1,6 +1,5 @@
 import uuid
 
-from archive.models import CodeBatch, URLBatch
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth import get_user_model
@@ -12,7 +11,7 @@ from import_export.resources import ModelResource
 from settings.models import ProductGroup
 from core.utils import unique_code_generator, unique_password_generator
 from .forms import CodeBulkCreateForm, URLBulkCreateForm
-from .models import NFCCard, PurchasingCode
+from .models import NFCCard, PurchasingCode, CodeBatch, URLBatch
 
 User = get_user_model()
 
@@ -36,6 +35,9 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
     readonly_fields = ["uuid", "batch"]
     resource_class = NFCCardResource
 
+    def has_add_permission(self, request):
+        return False
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -54,7 +56,7 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
                 NFCCard.objects.bulk_create(instances)
 
                 self.message_user(request, f'Successfully created {count} URLS.', messages.SUCCESS)
-                return redirect('admin:archive_urlbatch_changelist')
+                return redirect('admin:cards_urlbatch_changelist')
 
         else:
             form = URLBulkCreateForm()
@@ -89,6 +91,9 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
     fields = ["group", "product", "duration", "card", "code", "password"]
     readonly_fields = ["code", "password", "card"]
     resource_class = PurchasingCodeResource
+
+    def has_add_permission(self, request):
+        return False
 
     def get_urls(self):
         urls = super().get_urls()
@@ -126,7 +131,7 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
                         instances.append(instance)
                 PurchasingCode.objects.bulk_create(instances)
                 self.message_user(request, f'Successfully created {count} Purchasing Codes.', messages.SUCCESS)
-                return redirect('admin:archive_codebatch_changelist')
+                return redirect('admin:cards_codebatch_changelist')
 
         else:
             form = CodeBulkCreateForm()
@@ -140,3 +145,59 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
             **extra_context,
         }
         return render(request, 'admin/bulk_create_form.html', context)
+
+
+class NFCCardInline(admin.TabularInline):
+    model = NFCCard
+    fields = ["get_url"]
+    readonly_fields = ["get_url"]
+    can_delete = False
+    extra = 0
+    show_change_link = True
+    
+
+    def get_url(self, instance):
+        base_url = 'http://127.0.0.1:8000/services/landingPage/'
+        url = f'{ base_url }{instance.uuid}/'
+        return url
+
+    get_url.short_description = "URL"
+
+
+class PurchasingCodeInline(admin.TabularInline):
+    model = PurchasingCode
+    fields = ["card", "password", "code"]
+    readonly_fields = ["card", "password", "code"]
+    can_delete = False
+    extra = 0
+    show_change_link = True
+
+
+@admin.register(URLBatch)
+class URLBatchAdmin(admin.ModelAdmin):
+    list_display = ["count", "created_at", "user", "archive"]
+    list_editable = ["archive"]
+    readonly_fields = ["user"]
+    inlines = [NFCCardInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(archive=False)
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(CodeBatch)
+class CodeBatchAdmin(admin.ModelAdmin):
+    list_display = ["count", "created_at", "user", "archive"]
+    list_editable = ["archive"]
+    readonly_fields = ["user"]
+    inlines = [PurchasingCodeInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(archive=False)
+
+    def has_add_permission(self, request):
+        return False

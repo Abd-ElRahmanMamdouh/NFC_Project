@@ -1,4 +1,3 @@
-from archive.models import CodeBatch, URLBatch
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
@@ -6,6 +5,52 @@ from settings.models import PRODUCTS_CHOICES, LinkDuration, ProductGroup
 from core.utils import unique_code_generator, unique_password_generator
 
 User = get_user_model()
+
+
+class URLBatch(models.Model):
+    count = models.PositiveBigIntegerField("Quantity", blank=True, null=True)
+    user = models.ForeignKey(
+        User,
+        related_name="user_URL_batchs",
+        verbose_name="User",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    archive = models.BooleanField("Archive?", default=False)
+    created_at = models.DateTimeField("Created at", auto_now_add=True)
+    updated_at = models.DateTimeField("Updated at", auto_now=True)
+
+    class Meta:
+        verbose_name = "URL Batch"
+        verbose_name_plural = "URL Batches"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.count} URLs Generated at {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
+
+
+class CodeBatch(models.Model):
+    count = models.PositiveBigIntegerField("Count", blank=True, null=True)
+    user = models.ForeignKey(
+        User,
+        related_name="user_code_batchs",
+        verbose_name="User",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    archive = models.BooleanField("Archive?", default=False)
+    created_at = models.DateTimeField("Created at", auto_now_add=True)
+    updated_at = models.DateTimeField("Updated at", auto_now=True)
+
+    class Meta:
+        verbose_name = "Code Batch"
+        verbose_name_plural = "Code Batches"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.count} Purchasing Codes Generated at {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
 
 
 

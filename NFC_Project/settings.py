@@ -268,10 +268,10 @@ JAZZMIN_SETTINGS = {
     "hide_apps": ["auth"],
 
     # Hide these models when generating side menu (e.g auth.user)
-    "hide_models": [],
+    "hide_models": ["archive.Archive"],
 
     # List of apps (and/or models) to base side menu ordering off of (does not need to contain all apps/models)
-    "order_with_respect_to": ["users", "cards"], #"books.author", "books.book"],
+    "order_with_respect_to": ["users", "cards", "cards.URLBatch", "cards.NFCCard", "settings", "archive"], #"books.author", "books.book"],
 
     # Custom links to append to app groups, keyed on app name
     "custom_links": {
@@ -283,8 +283,8 @@ JAZZMIN_SETTINGS = {
             {"name": "Code Generator", 
             "url": "admin:code_bulk", 
             "icon": "fas fa-magic",
-            "permissions": ["cards.add_purchasingcode"]},
-        ]
+            "permissions": ["cards.delete_urlbatch"]},
+        ],
     },
 
     # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free
@@ -299,7 +299,9 @@ JAZZMIN_SETTINGS = {
         "settings.LinkDuration": "fas fa-stopwatch",
         "cards.NFCCard": "fas fa-credit-card",
         "cards.PurchasingCode": "fas fa-dollar-sign",
-        "archive.Batch": "far fa-file-archive",
+        "cards.URLBatch": "far fa-file-archive",
+        "cards.CodeBatch": "far fa-file-archive",
+        "archive.URLBatchArchived": "fas fa-archive",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
