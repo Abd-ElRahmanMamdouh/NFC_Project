@@ -16,6 +16,11 @@ from .models import NFCCard, PurchasingCode, CodeBatch, URLBatch
 User = get_user_model()
 
 
+def archive_selected(modeladmin, request, queryset):
+    queryset.update(archive=True)
+    messages.success(request, "Selected records have been archived.")
+
+
 class NFCCardResource(ModelResource):
     class Meta:
         fields = ("uuid", "user__username", "card_code", "created_at", "updated_at")
@@ -175,10 +180,10 @@ class PurchasingCodeInline(admin.TabularInline):
 
 @admin.register(URLBatch)
 class URLBatchAdmin(admin.ModelAdmin):
-    list_display = ["count", "created_at", "user", "archive"]
-    list_editable = ["archive"]
+    list_display = ["count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [NFCCardInline]
+    actions = [archive_selected]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -190,10 +195,10 @@ class URLBatchAdmin(admin.ModelAdmin):
 
 @admin.register(CodeBatch)
 class CodeBatchAdmin(admin.ModelAdmin):
-    list_display = ["count", "created_at", "user", "archive"]
-    list_editable = ["archive"]
+    list_display = ["count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [PurchasingCodeInline]
+    actions = [archive_selected]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

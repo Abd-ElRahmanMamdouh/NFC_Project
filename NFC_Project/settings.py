@@ -302,6 +302,7 @@ JAZZMIN_SETTINGS = {
         "cards.URLBatch": "far fa-file-archive",
         "cards.CodeBatch": "far fa-file-archive",
         "archive.URLBatchArchived": "fas fa-archive",
+        "archive.CodeBatchArchived": "fas fa-archive",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
