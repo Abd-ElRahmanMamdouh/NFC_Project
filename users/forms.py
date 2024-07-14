@@ -1,28 +1,15 @@
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.forms import (
-    AuthenticationForm,
-    UserChangeForm,
-    UserCreationForm,
-)
+from django.contrib.auth.forms import (AuthenticationForm, UserChangeForm,
+                                       UserCreationForm)
+from django.contrib.auth.models import Permission
 from django.db.models import Q
+from cards.models import NFCCard
 
 User = get_user_model()
 
 
 class CustomUserCreationForm(UserCreationForm):
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        role = self.cleaned_data["role"]
-
-        if role == "admin":
-            user.is_staff = True
-        else:
-            user.is_staff = False
-
-        if commit:
-            user.save()
-        return user
 
     def clean_email(self):
         email = self.cleaned_data["email"]
@@ -34,6 +21,7 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
+
     def clean_email(self):
         email = self.cleaned_data["email"]
         if email:

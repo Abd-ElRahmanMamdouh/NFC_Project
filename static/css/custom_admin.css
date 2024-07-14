@@ -39,3 +39,7 @@ a[title="View on site"] {
     color: #28a745 !important;
     border-color: #28a745;
 }
+
+.main-footer {
+    visibility: hidden !important;
+}

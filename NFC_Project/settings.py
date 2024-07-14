@@ -275,21 +275,15 @@ JAZZMIN_SETTINGS = {
 
     # Custom links to append to app groups, keyed on app name
     "custom_links": {
-        "users": [{
-            "name": "Permissions Groups", 
-            "url": "admin:auth_group_changelist", 
-            "icon": "fas fa-users-cog",
-            "permissions": ["auth.view_user"]
-        }],
         "cards": [
             {"name": "URL Generator", 
             "url": "admin:url_bulk", 
             "icon": "fas fa-magic",
-            "permissions": ["auth.view_user"]},
+            "permissions": ["cards.add_nfccard"]},
             {"name": "Code Generator", 
             "url": "admin:code_bulk", 
             "icon": "fas fa-magic",
-            "permissions": ["auth.view_user"]},
+            "permissions": ["cards.add_purchasingcode"]},
         ]
     },
 

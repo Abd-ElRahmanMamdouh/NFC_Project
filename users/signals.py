@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied
-from django.db.models.signals import post_delete, pre_delete, pre_save
+from django.db.models.signals import (post_delete, post_save, pre_delete,
+                                      pre_save)
 from django.dispatch.dispatcher import receiver
 
 User = get_user_model()
@@ -37,3 +39,55 @@ def delete_image_onchange(sender, instance, **kwargs):
 def delete_image_ondelete(sender, instance, **kwargs):
     """Delete image file from server On delete instance"""
     instance.image.delete(False)
+
+
+@receiver(post_save, sender=User)
+def assign_permissions(sender, instance, **kwargs):
+    user = instance
+    role = user.role
+
+    permissions = []
+
+    if role == "superuser":
+        user.is_staff = True
+        user.is_superuser = True
+    elif role == "url":
+        user.is_staff = True
+        permissions = [
+            'add_nfccard',
+            'change_nfccard',
+            'view_nfccard',
+        ]
+    elif role == "artist":
+        user.is_staff = True
+        permissions = [
+            'add_nfccard',
+            'change_nfccard',
+            'view_nfccard',
+            'add_purchasingcode',
+            'change_purchasingcode',
+            'view_purchasingcode',
+        ]
+    elif role == "administrator":
+        user.is_staff = True
+        permissions = [
+            'add_codebatch',
+            'change_codebatch',
+            'delete_codebatch',
+            'view_codebatch',
+            'add_urlbatch',
+            'change_urlbatch',
+            'delete_urlbatch',
+            'view_urlbatch',
+        ]
+    elif role == "customer":
+        user.is_staff = False
+
+    user.user_permissions.clear()
+
+    for perm in permissions:
+        try:
+            permission = Permission.objects.get(codename=perm)
+            user.user_permissions.add(permission)
+        except Permission.DoesNotExist:
+            pass

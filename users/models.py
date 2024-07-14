@@ -6,14 +6,17 @@ from django.utils import timezone
 from PIL import Image
 
 ROLE_CHOICES = [
-    ("admin", "Admin User"),
-    ("regular", "Regular User"),
+    ("customer", "Customer"),
+    ("superuser", "Super User"),
+    ("url", "URL Maker"),
+    ("artist", "Artist"),
+    ("administrator", "Administrator"),
 ]
 
 
 class CustomUser(AbstractUser):
     role = models.CharField(
-        "Role", choices=ROLE_CHOICES, max_length=50, default="regular"
+        "Role", choices=ROLE_CHOICES, max_length=50, default="customer"
     )
     image = models.ImageField("Image", upload_to="users/images", null=True, blank=True)
 

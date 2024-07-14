@@ -46,7 +46,7 @@ class CustomUserAdmin(ExportMixin, UserAdmin):
         ("Contact info", {"fields": ("email",)}),
         (
             "Permissions",
-            {"fields": ("is_active", "groups", "is_staff", "user_permissions")},
+            {"fields": ("role", "is_active", "is_staff", "is_superuser")},
         ),
     )
 
