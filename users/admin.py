@@ -36,17 +36,15 @@ class CustomUserAdmin(ExportMixin, UserAdmin):
         "email",
         "username",
         "role",
-        "is_staff",
-        "is_superuser",
     ]
-    list_filter = ["is_staff", "is_superuser"]
+    list_filter = ["role"]
     fieldsets = (
         ("Login info", {"fields": ("username", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name", "image")}),
         ("Contact info", {"fields": ("email",)}),
         (
             "Permissions",
-            {"fields": ("role", "is_active", "is_staff", "is_superuser")},
+            {"fields": ("role", "is_active",)},
         ),
     )
 
