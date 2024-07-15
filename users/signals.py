@@ -41,62 +41,64 @@ def delete_image_ondelete(sender, instance, **kwargs):
     instance.image.delete(False)
 
 
-@receiver(post_save, sender=User)
+@receiver(pre_save, sender=User)
 def assign_permissions(sender, instance, **kwargs):
     user = instance
     role = user.role
+    if role in ["url", "artist", "administrator", "customer"]:
+        permissions = []
 
-    permissions = []
+        if role == "url":
+            user.is_superuser = False
+            user.is_staff = True
+            permissions = [
+                'add_nfccard',
+                'change_nfccard',
+                'view_nfccard',
+                'add_urlbatch',
+                'change_urlbatch',
+                'view_urlbatch',
+            ]
+        elif role == "artist":
+            user.is_superuser = False
+            user.is_staff = True
+            permissions = [
+                'add_nfccard',
+                'change_nfccard',
+                'view_nfccard',
+                'add_purchasingcode',
+                'change_purchasingcode',
+                'view_purchasingcode',
+                'add_codebatch',
+                'change_codebatch',
+                'view_codebatch',
+                'add_urlbatch',
+                'change_urlbatch',
+                'view_urlbatch',
+            ]
+        elif role == "administrator":
+            user.is_superuser = False
+            user.is_staff = True
+            permissions = [
+                'add_codebatch',
+                'change_codebatch',
+                'delete_codebatch',
+                'view_codebatch',
+                'add_urlbatch',
+                'change_urlbatch',
+                'delete_urlbatch',
+                'view_urlbatch',
+            ]
+        elif role == "customer":
+            user.is_superuser = False
+            user.is_staff = False
 
-    if role == "superuser":
-        user.is_staff = True
-        user.is_superuser = True
-    elif role == "url":
-        user.is_staff = True
-        permissions = [
-            'add_nfccard',
-            'change_nfccard',
-            'view_nfccard',
-            'add_urlbatch',
-            'change_urlbatch',
-            'view_urlbatch',
-        ]
-    elif role == "artist":
-        user.is_staff = True
-        permissions = [
-            'add_nfccard',
-            'change_nfccard',
-            'view_nfccard',
-            'add_purchasingcode',
-            'change_purchasingcode',
-            'view_purchasingcode',
-            'add_codebatch',
-            'change_codebatch',
-            'view_codebatch',
-            'add_urlbatch',
-            'change_urlbatch',
-            'view_urlbatch',
-        ]
-    elif role == "administrator":
-        user.is_staff = True
-        permissions = [
-            'add_codebatch',
-            'change_codebatch',
-            'delete_codebatch',
-            'view_codebatch',
-            'add_urlbatch',
-            'change_urlbatch',
-            'delete_urlbatch',
-            'view_urlbatch',
-        ]
-    elif role == "customer":
-        user.is_staff = False
+        user.user_permissions.clear()
+        print(user.is_superuser)
+        for perm in permissions:
+            try:
+                permission = Permission.objects.get(codename=perm)
+                user.user_permissions.add(permission)
+            except Permission.DoesNotExist:
+                pass
 
-    user.user_permissions.clear()
-
-    for perm in permissions:
-        try:
-            permission = Permission.objects.get(codename=perm)
-            user.user_permissions.add(permission)
-        except Permission.DoesNotExist:
-            pass

@@ -11,6 +11,18 @@ User = get_user_model()
 
 class CustomUserCreationForm(UserCreationForm):
 
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        role = self.cleaned_data["role"]
+        if role == "superuser":
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+
+        if commit:
+            user.save()
+        return user
+
     def clean_email(self):
         email = self.cleaned_data["email"]
         if email:
@@ -21,6 +33,18 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        role = self.cleaned_data["role"]
+        if role == "superuser":
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+
+        if commit:
+            user.save()
+        return user
 
     def clean_email(self):
         email = self.cleaned_data["email"]

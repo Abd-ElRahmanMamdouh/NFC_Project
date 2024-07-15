@@ -31,7 +31,7 @@ class URLBatch(models.Model):
 
 
 class CodeBatch(models.Model):
-    count = models.PositiveBigIntegerField("Count", blank=True, null=True)
+    count = models.PositiveBigIntegerField("Quantity", blank=True, null=True)
     user = models.ForeignKey(
         User,
         related_name="user_code_batchs",
