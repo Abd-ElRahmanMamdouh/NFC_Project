@@ -220,7 +220,7 @@ class CodeBatchResource(ModelResource):
     user_username = Field(column_name='User', attribute='user__username')
 
     class Meta:
-        fields = ("count", "user_username", "created_at", "batch_urls",)
+        fields = ("count", "user_username", "created_at", "batch_codes",)
         model = CodeBatch
 
     def dehydrate_batch_codes(self, batch):
