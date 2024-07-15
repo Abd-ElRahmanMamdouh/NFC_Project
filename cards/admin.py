@@ -1,17 +1,20 @@
 import uuid
-
+from import_export.formats.base_formats import XLSX, CSV
+from core.utils import unique_code_generator, unique_password_generator
 from django.contrib import admin, messages
+from django.http import HttpResponse
 from django.contrib.admin import site
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
+from import_export.fields import Field
 from import_export.resources import ModelResource
 from settings.models import ProductGroup
-from core.utils import unique_code_generator, unique_password_generator
+from import_export.admin import ImportExportModelAdmin
 from .forms import CodeBulkCreateForm, URLBulkCreateForm
-from .models import NFCCard, PurchasingCode, CodeBatch, URLBatch
+from .models import CodeBatch, NFCCard, PurchasingCode, URLBatch
 
 User = get_user_model()
 
@@ -68,6 +71,7 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
 
         extra_context = {
             'title': 'Create URL Batch',
+            'head_title': 'URL Generator',
             'form': form,
         }
         context = {
@@ -143,6 +147,7 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
 
         extra_context = {
             'title': 'Create Purchasing Code Batch',
+            'head_title': 'Code Generator',
             'form': form,
         }
         context = {
@@ -178,12 +183,85 @@ class PurchasingCodeInline(admin.TabularInline):
     show_change_link = True
 
 
+class NFCCardResourceInline(ModelResource):
+    get_url = Field(column_name='URL', attribute='get_url')
+
+    class Meta:
+        fields = ("get_url", )
+        model = NFCCard
+
+class URLBatchResource(ModelResource):
+    batch_urls = Field()
+    user_username = Field(column_name='User', attribute='user__username')
+
+    class Meta:
+        fields = ("count", "user_username", "created_at", "batch_urls",)
+        model = URLBatch
+
+    def dehydrate_batch_urls(self, batch):
+        export_format = self.context.get('export_format')
+        inline_queryset = NFCCard.objects.filter(batch=batch)
+        inline_resource = NFCCardResourceInline()
+        dataset = inline_resource.export(inline_queryset)
+        if export_format == 'xlsx':
+            return dataset.xlsx
+        else:
+            return dataset.csv
+
+
+class CodeResourceInline(ModelResource):
+    class Meta:
+        fields = ("code", )
+        model = PurchasingCode
+
+
+class CodeBatchResource(ModelResource):
+    batch_codes = Field()
+    user_username = Field(column_name='User', attribute='user__username')
+
+    class Meta:
+        fields = ("count", "user_username", "created_at", "batch_urls",)
+        model = CodeBatch
+
+    def dehydrate_batch_codes(self, batch):
+        export_format = self.context.get('export_format')
+        inline_queryset = PurchasingCode.objects.filter(batch=batch)
+        inline_resource = CodeResourceInline()
+        dataset = inline_resource.export(inline_queryset)
+        if export_format == 'xlsx':
+            return dataset.xlsx
+        else:
+            return dataset.csv
+
+
 @admin.register(URLBatch)
 class URLBatchAdmin(admin.ModelAdmin):
+    resource_class = URLBatchResource
     list_display = ["count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [NFCCardInline]
-    actions = [archive_selected]
+    actions = [archive_selected, 'export_selected_record']
+
+    def export_selected_record(self, request, queryset):
+
+        record = queryset.first()
+        export_format = request.POST.get('file_format', 'csv')
+        resource = self.resource_class()
+        resource.context = {'export_format': export_format}
+
+        dataset = resource.export([record])
+
+        # Determine the export format
+        if export_format == 'xlsx':
+            file_format = XLSX()
+        else:
+            file_format = CSV()
+
+        export_data = file_format.export_data(dataset)
+        response = HttpResponse(export_data, content_type=file_format.get_content_type())
+        response['Content-Disposition'] = f'attachment; filename="{record}.xlsx"'
+
+        return response
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -195,10 +273,32 @@ class URLBatchAdmin(admin.ModelAdmin):
 
 @admin.register(CodeBatch)
 class CodeBatchAdmin(admin.ModelAdmin):
+    resource_class = CodeBatchResource
     list_display = ["count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [PurchasingCodeInline]
-    actions = [archive_selected]
+    actions = [archive_selected, 'export_selected_record']
+
+    def export_selected_record(self, request, queryset):
+
+        record = queryset.first()
+        export_format = request.POST.get('file_format', 'csv')
+        resource = self.resource_class()
+        resource.context = {'export_format': export_format}
+
+        dataset = resource.export([record])
+
+        # Determine the export format
+        if export_format == 'xlsx':
+            file_format = XLSX()
+        else:
+            file_format = CSV()
+
+        export_data = file_format.export_data(dataset)
+        response = HttpResponse(export_data, content_type=file_format.get_content_type())
+        response['Content-Disposition'] = f'attachment; filename="{record}.xlsx"'
+
+        return response
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

@@ -22,7 +22,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 admin.site.index_title = "Website Managment"
-admin.site.site_header = "NFC Project"
+admin.site.site_header = "Chipper Group"
 
 urlpatterns = [
     path('admin/', custom_admin_index, name='custom_admin_index'),

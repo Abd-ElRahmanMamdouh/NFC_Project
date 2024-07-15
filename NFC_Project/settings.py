@@ -205,10 +205,10 @@ IMPORT_EXPORT_FORMATS = [
 # Jazzmin Settings
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Dashboard",
+    "site_title": "Admin",
     # Title on the brand, and login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "NFC Project",
-    "site_brand": "NFC Project",
+    "site_header": "Chipper Group",
+    "site_brand": "Chipper Group",
 
     # square logo to use for your site, must be present in static files, used for favicon and brand on top left
     "site_logo": "img/favicon.ico",
@@ -217,7 +217,7 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Admin Panel",
 
     # Copyright on the footer
-    "copyright": "<a href='/' target='_blank'>NFC Project</a>",
+    "copyright": "<a href='/' target='_blank'>Chipper Group</a>",
 
     # The model admin to search from the search bar, search bar omitted if excluded
     #"search_model": "auth.User",

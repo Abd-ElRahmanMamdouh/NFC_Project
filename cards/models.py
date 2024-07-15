@@ -80,6 +80,10 @@ class NFCCard(models.Model):
         verbose_name_plural = "NFC Cards"
         ordering = ("-created_at",)
 
+    def get_url(self):
+        base_url = 'http://127.0.0.1:8000/services/landingPage/'
+        return f'{base_url}{self.uuid}/'
+
     def __str__(self):
         return str(self.uuid)
 
