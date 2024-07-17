@@ -9,17 +9,17 @@ User = get_user_model()
 
 class URLBatch(models.Model):
     count = models.PositiveBigIntegerField("Quantity", blank=True, null=True)
+    archive = models.BooleanField("Archive?", default=False)
+    created_at = models.DateTimeField("Created at", auto_now_add=True)
+    updated_at = models.DateTimeField("Updated at", auto_now=True)
     user = models.ForeignKey(
         User,
-        related_name="user_URL_batchs",
+        related_name="user_created_url_batches",
         verbose_name="User",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
     )
-    archive = models.BooleanField("Archive?", default=False)
-    created_at = models.DateTimeField("Created at", auto_now_add=True)
-    updated_at = models.DateTimeField("Updated at", auto_now=True)
 
     class Meta:
         verbose_name = "URL Batch"
@@ -27,22 +27,23 @@ class URLBatch(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"{self.count} URLs Generated at {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
+        # return f"{self.count} URLs Generated at {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
+        return f"Batch {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
 
 
 class CodeBatch(models.Model):
     count = models.PositiveBigIntegerField("Quantity", blank=True, null=True)
+    archive = models.BooleanField("Archive?", default=False)
+    created_at = models.DateTimeField("Created at", auto_now_add=True)
+    updated_at = models.DateTimeField("Updated at", auto_now=True)
     user = models.ForeignKey(
         User,
-        related_name="user_code_batchs",
+        related_name="user_created_code_batches",
         verbose_name="User",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
     )
-    archive = models.BooleanField("Archive?", default=False)
-    created_at = models.DateTimeField("Created at", auto_now_add=True)
-    updated_at = models.DateTimeField("Updated at", auto_now=True)
 
     class Meta:
         verbose_name = "Code Batch"
@@ -50,8 +51,8 @@ class CodeBatch(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"{self.count} Purchasing Codes Generated at {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
-
+        # return f"{self.count} Purchasing Codes Generated at {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
+        return f"Batch {self.created_at.strftime('%Y-%m-%d, %H:%M %p')} By {self.user}"
 
 
 class NFCCard(models.Model):
@@ -81,8 +82,8 @@ class NFCCard(models.Model):
         ordering = ("-created_at",)
 
     def get_url(self):
-        base_url = 'http://127.0.0.1:8000/services/landingPage/'
-        return f'{base_url}{self.uuid}/'
+        base_url = "http://127.0.0.1:8000/services/landingPage/"
+        return f"{base_url}{self.uuid}/"
 
     def __str__(self):
         return str(self.uuid)

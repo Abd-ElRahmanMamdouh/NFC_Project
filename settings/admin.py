@@ -4,7 +4,7 @@ from import_export.fields import Field
 from import_export.resources import ModelResource
 
 from .forms import ProductGroupForm
-from .models import ProductGroup, LinkDuration
+from .models import ProductGroup, LinkDuration, CRUDLog
 
 
 class ProductGroupResource(ModelResource):
@@ -33,3 +33,10 @@ class ProductGroupAdmin(ExportMixin, admin.ModelAdmin):
 @admin.register(LinkDuration)
 class LinkDurationAdmin(admin.ModelAdmin):
     list_display = ["__str__"]
+
+
+@admin.register(CRUDLog)
+class CRUDLogAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'action', 'object_name', 'user', 'timestamp']
+    list_filter = ['action', 'object_name', 'timestamp']
+    search_fields = ['object_name', 'user__username']

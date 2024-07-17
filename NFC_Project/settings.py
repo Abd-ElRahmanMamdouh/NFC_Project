@@ -64,6 +64,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'users.middleware.TokenAuthMiddleware',
+    'settings.middleware.CurrentUserMiddleware',
 ]
 
 ROOT_URLCONF = 'NFC_Project.urls'
@@ -211,7 +212,7 @@ JAZZMIN_SETTINGS = {
     "site_brand": "Chipper Group",
 
     # square logo to use for your site, must be present in static files, used for favicon and brand on top left
-    "site_logo": "img/favicon.ico",
+    "site_logo": "img/logo.svg",
 
     # Welcome text on the login screen
     "welcome_sign": "Admin Panel",
@@ -297,6 +298,7 @@ JAZZMIN_SETTINGS = {
         "users.AuthToken": "fas fa-users",
         "settings.ProductGroup": "fas fa-shopping-bag",
         "settings.LinkDuration": "fas fa-stopwatch",
+        "settings.CRUDLog": "fas fa-file-signature",
         "cards.NFCCard": "fas fa-credit-card",
         "cards.PurchasingCode": "fas fa-dollar-sign",
         "cards.URLBatch": "far fa-file-archive",

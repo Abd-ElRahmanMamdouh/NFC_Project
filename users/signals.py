@@ -1,3 +1,5 @@
+import sys
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied
@@ -43,6 +45,9 @@ def delete_image_ondelete(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=User)
 def assign_permissions(sender, instance, **kwargs):
+    if instance.pk is None:
+        return
+
     user = instance
     role = user.role
     if role in ["url", "artist", "administrator", "customer"]:
@@ -94,7 +99,7 @@ def assign_permissions(sender, instance, **kwargs):
             user.is_staff = False
 
         user.user_permissions.clear()
-        print(user.is_superuser)
+
         for perm in permissions:
             try:
                 permission = Permission.objects.get(codename=perm)

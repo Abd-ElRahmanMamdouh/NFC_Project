@@ -16,7 +16,7 @@ ROLE_CHOICES = [
 
 class CustomUser(AbstractUser):
     role = models.CharField(
-        "Role", choices=ROLE_CHOICES, max_length=50, default="customer"
+        "Role", choices=ROLE_CHOICES, max_length=50, null=True, blank=True
     )
     image = models.ImageField("Image", upload_to="users/images", null=True, blank=True)
 
@@ -40,6 +40,12 @@ class CustomUser(AbstractUser):
             hsize = int((float(img.size[1]) * float(wpercent)))
             img = img.resize((basewidth, hsize), Image.ANTIALIAS)
             img.save(self.image.path)
+
+    @property
+    def is_last_login_updated(self):
+        if self.last_login is not None:
+            return self.last_login > timezone.now() - timezone.timedelta(seconds=1)
+        return False
 
 
 class AuthToken(models.Model):

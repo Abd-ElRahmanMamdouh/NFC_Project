@@ -19,8 +19,8 @@ def handler500(request):
 
 @login_required
 def custom_admin_index(request, extra_context=None):
-    url_count = NFCCard.objects.count()
-    code_count = PurchasingCode.objects.count()
+    url_count = NFCCard.objects.filter(batch__archive=False).count()
+    code_count = PurchasingCode.objects.filter(batch__archive=False).count()
     extra_context = {
         'title': 'Home',
         'url_count': url_count,

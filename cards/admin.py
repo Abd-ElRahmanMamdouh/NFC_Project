@@ -1,18 +1,21 @@
 import uuid
-from import_export.formats.base_formats import XLSX, CSV
-from core.utils import unique_code_generator, unique_password_generator
+
+from io import BytesIO
+import zipfile
 from django.contrib import admin, messages
-from django.http import HttpResponse
 from django.contrib.admin import site
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
 from import_export.fields import Field
+from import_export.formats.base_formats import CSV, XLSX
 from import_export.resources import ModelResource
 from settings.models import ProductGroup
-from import_export.admin import ImportExportModelAdmin
+from tablib import Dataset
+
 from .forms import CodeBulkCreateForm, URLBulkCreateForm
 from .models import CodeBatch, NFCCard, PurchasingCode, URLBatch
 
@@ -32,7 +35,16 @@ class NFCCardResource(ModelResource):
 
 class PurchasingCodeResource(ModelResource):
     class Meta:
-        fields = ("group__title", 'poduct', "card__uuid", "duration__duration", "code", "passwod", "created_at", "updated_at")
+        fields = (
+            "group__title",
+            "poduct",
+            "card__uuid",
+            "duration__duration",
+            "code",
+            "passwod",
+            "created_at",
+            "updated_at",
+        )
         model = PurchasingCode
 
 
@@ -43,43 +55,50 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
     readonly_fields = ["uuid", "batch"]
     resource_class = NFCCardResource
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(batch__archive=False)
+
     def has_add_permission(self, request):
         return False
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('create-url-batch/', self.bulk_create_view, name='url_bulk'),
+            path("create-url-batch/", self.bulk_create_view, name="url_bulk"),
         ]
         return custom_urls + urls
 
     def bulk_create_view(self, request):
-        if request.method == 'POST':
+        if request.method == "POST":
             form = URLBulkCreateForm(request.POST)
             if form.is_valid():
-                count = form.cleaned_data['count']
+                count = form.cleaned_data["count"]
                 user = request.user
                 batch = URLBatch.objects.create(count=count, user=user)
-                instances = [NFCCard(uuid=uuid.uuid4(), batch=batch) for _ in range(count)]
+                instances = [
+                    NFCCard(uuid=uuid.uuid4(), batch=batch) for _ in range(count)
+                ]
                 NFCCard.objects.bulk_create(instances)
 
-                self.message_user(request, f'Successfully created {count} URLS.', messages.SUCCESS)
-                return redirect('admin:cards_urlbatch_changelist')
+                self.message_user(
+                    request, f"Successfully created {count} URLS.", messages.SUCCESS
+                )
+                return redirect("admin:cards_urlbatch_changelist")
 
         else:
             form = URLBulkCreateForm()
 
         extra_context = {
-            'title': 'Create URL Batch',
-            'head_title': 'URL Generator',
-            'form': form,
+            "title": "Create URL Batch",
+            "head_title": "URL Generator",
+            "form": form,
         }
         context = {
             **site.each_context(request),
             **extra_context,
         }
-        return render(request, 'admin/bulk_create_form.html', context)
-
+        return render(request, "admin/bulk_create_form.html", context)
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -101,23 +120,27 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
     readonly_fields = ["code", "password", "card"]
     resource_class = PurchasingCodeResource
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(batch__archive=False)
+
     def has_add_permission(self, request):
         return False
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('create-code-batch/', self.bulk_create_view, name='code_bulk'),
+            path("create-code-batch/", self.bulk_create_view, name="code_bulk"),
         ]
         return custom_urls + urls
 
     def bulk_create_view(self, request):
-        if request.method == 'POST':
+        if request.method == "POST":
             form = CodeBulkCreateForm(request.POST)
             if form.is_valid():
-                count = form.cleaned_data['count']
-                product = form.cleaned_data['product']
-                duration = form.cleaned_data['duration']
+                count = form.cleaned_data["count"]
+                product = form.cleaned_data["product"]
+                duration = form.cleaned_data["duration"]
                 try:
                     group = ProductGroup.objects.get(id=product)
                 except ProductGroup.DoesNotExist:
@@ -129,32 +152,40 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
                 if group:
                     instances = []
                     for _ in range(count):
-                        instance = PurchasingCode(group=group, duration=duration, batch=batch)
+                        instance = PurchasingCode(
+                            group=group, duration=duration, batch=batch
+                        )
                         instance.generate_code_and_password()
                         instances.append(instance)
                 else:
                     instances = []
                     for _ in range(count):
-                        instance = PurchasingCode(product=product, duration=duration, batch=batch)
+                        instance = PurchasingCode(
+                            product=product, duration=duration, batch=batch
+                        )
                         instance.generate_code_and_password()
                         instances.append(instance)
                 PurchasingCode.objects.bulk_create(instances)
-                self.message_user(request, f'Successfully created {count} Purchasing Codes.', messages.SUCCESS)
-                return redirect('admin:cards_codebatch_changelist')
+                self.message_user(
+                    request,
+                    f"Successfully created {count} Purchasing Codes.",
+                    messages.SUCCESS,
+                )
+                return redirect("admin:cards_codebatch_changelist")
 
         else:
             form = CodeBulkCreateForm()
 
         extra_context = {
-            'title': 'Create Purchasing Code Batch',
-            'head_title': 'Code Generator',
-            'form': form,
+            "title": "Create Purchasing Code Batch",
+            "head_title": "Code Generator",
+            "form": form,
         }
         context = {
             **site.each_context(request),
             **extra_context,
         }
-        return render(request, 'admin/bulk_create_form.html', context)
+        return render(request, "admin/bulk_create_form.html", context)
 
 
 class NFCCardInline(admin.TabularInline):
@@ -164,11 +195,10 @@ class NFCCardInline(admin.TabularInline):
     can_delete = False
     extra = 0
     show_change_link = True
-    
 
     def get_url(self, instance):
-        base_url = 'http://127.0.0.1:8000/services/landingPage/'
-        url = f'{ base_url }{instance.uuid}/'
+        base_url = "http://127.0.0.1:8000/services/landingPage/"
+        url = f"{ base_url }{instance.uuid}/"
         return url
 
     get_url.short_description = "URL"
@@ -183,85 +213,181 @@ class PurchasingCodeInline(admin.TabularInline):
     show_change_link = True
 
 
-class NFCCardResourceInline(ModelResource):
-    get_url = Field(column_name='URL', attribute='get_url')
-
-    class Meta:
-        fields = ("get_url", )
-        model = NFCCard
-
 class URLBatchResource(ModelResource):
-    batch_urls = Field()
-    user_username = Field(column_name='User', attribute='user__username')
+    batch_url = Field(column_name="URL")
+    batch_str = Field(column_name="Batch")
 
     class Meta:
-        fields = ("count", "user_username", "created_at", "batch_urls",)
+        fields = ("batch_str", "batch_url")
         model = URLBatch
 
-    def dehydrate_batch_urls(self, batch):
-        export_format = self.context.get('export_format')
-        inline_queryset = NFCCard.objects.filter(batch=batch)
-        inline_resource = NFCCardResourceInline()
-        dataset = inline_resource.export(inline_queryset)
-        if export_format == 'xlsx':
-            return dataset.xlsx
-        else:
-            return dataset.csv
+    def dehydrate_batch_url(self, batch):
+        return None
 
+    def dehydrate_batch_str(self, batch):
+        return str(batch)
 
-class CodeResourceInline(ModelResource):
-    class Meta:
-        fields = ("code", )
-        model = PurchasingCode
+    def export(self, queryset=None, *args, **kwargs):
+        queryset = queryset or self.get_queryset()
+        data = []
+        for batch in queryset:
+            inline_queryset = NFCCard.objects.filter(batch=batch)
+            for card in inline_queryset:
+                try:
+                    card_code = card.card_code
+                except PurchasingCode.DoesNotExist:
+                    card_code = "No Code connected yet"
+                last_updated = card.updated_at.strftime("%Y-%m-%d, %H:%M %p")
+                data.append(
+                    {
+                        "Batch": str(batch),
+                        "Card User": card.user.username
+                        if card.user
+                        else "No User connected yet",
+                        "Card UUID": card.uuid,
+                        "Card Code": card_code,
+                        "Last Updated": last_updated,
+                        "URL": card.get_url(),
+                    }
+                )
+
+        headers = [
+            "Batch",
+            "Card User",
+            "Card UUID",
+            "Card Code",
+            "Last Updated",
+            "URL",
+        ]
+        dataset = self._create_dataset(data, headers)
+
+        return dataset
+
+    def _create_dataset(self, data, headers):
+        dataset = Dataset()
+        dataset.headers = headers
+        for row in data:
+            dataset.append([row[col] for col in headers])
+
+        return dataset
 
 
 class CodeBatchResource(ModelResource):
-    batch_codes = Field()
-    user_username = Field(column_name='User', attribute='user__username')
+    code = Field(column_name="Code")
+    batch_str = Field(column_name="Batch")
 
     class Meta:
-        fields = ("count", "user_username", "created_at", "batch_codes",)
+        fields = (
+            "batch_str",
+            "code",
+        )
         model = CodeBatch
 
-    def dehydrate_batch_codes(self, batch):
-        export_format = self.context.get('export_format')
-        inline_queryset = PurchasingCode.objects.filter(batch=batch)
-        inline_resource = CodeResourceInline()
-        dataset = inline_resource.export(inline_queryset)
-        if export_format == 'xlsx':
-            return dataset.xlsx
-        else:
-            return dataset.csv
+    def dehydrate_code(self, batch):
+        return None
+
+    def dehydrate_batch_str(self, batch):
+        return str(batch)
+
+    def export(self, queryset=None, *args, **kwargs):
+        queryset = queryset or self.get_queryset()
+        data = []
+
+        for batch in queryset:
+            inline_queryset = PurchasingCode.objects.filter(batch=batch)
+            for code in inline_queryset:
+                if code.group:
+                    product = code.group
+                else:
+                    product = code.get_product_display()
+                last_updated = code.updated_at.strftime("%Y-%m-%d, %H:%M %p")
+                data.append(
+                    {
+                        "Batch": str(batch),
+                        "Code": code.code,
+                        "Password": code.password,
+                        "Duration": code.duration,
+                        "Product": product,
+                        "Card": code.card if code.card else "No Card connected yet",
+                        "Last Updated": last_updated,
+                    }
+                )
+
+        headers = [
+            "Batch",
+            "Code",
+            "Password",
+            "Duration",
+            "Product",
+            "Card",
+            "Last Updated",
+        ]
+        dataset = self._create_dataset(data, headers)
+
+        return dataset
+
+    def _create_dataset(self, data, headers):
+        dataset = Dataset()
+        dataset.headers = headers
+        for row in data:
+            dataset.append([row[col] for col in headers])
+
+        return dataset
 
 
 @admin.register(URLBatch)
 class URLBatchAdmin(admin.ModelAdmin):
     resource_class = URLBatchResource
-    list_display = ["count", "created_at", "user"]
+    list_display = ["__str__", "count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [NFCCardInline]
-    actions = [archive_selected, 'export_selected_record']
+    actions = [archive_selected, "export_selected_records"]
 
-    def export_selected_record(self, request, queryset):
-
-        record = queryset.first()
-        export_format = request.POST.get('file_format', 'csv')
+    def export_selected_records(self, request, queryset):
+        export_format = request.POST.get("file_format", "xlsx")
         resource = self.resource_class()
-        resource.context = {'export_format': export_format}
+        resource.context = {"export_format": export_format}
 
-        dataset = resource.export([record])
-
-        # Determine the export format
-        if export_format == 'xlsx':
+        if export_format == "xlsx":
             file_format = XLSX()
         else:
             file_format = CSV()
 
-        export_data = file_format.export_data(dataset)
-        response = HttpResponse(export_data, content_type=file_format.get_content_type())
-        response['Content-Disposition'] = f'attachment; filename="{record}.xlsx"'
+        responses = []
+        for batch in queryset:
+            dataset = resource.export([batch])
 
-        return response
+            batch_name = str(batch).replace(" ", "_")
+            file_name = f"{batch_name}_{batch.pk}.{file_format.get_extension()}"
+            export_data = file_format.export_data(dataset)
+            response = HttpResponse(
+                export_data, content_type=file_format.get_content_type()
+            )
+            response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+            responses.append((file_name, response.content))
+
+        if len(responses) == 1:
+            return HttpResponse(
+                responses[0][1],
+                content_type=file_format.get_content_type(),
+                headers={
+                    "Content-Disposition": f'attachment; filename="{responses[0][0]}"'
+                },
+            )
+        else:
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for file_name, content in responses:
+                    zip_file.writestr(file_name, content)
+
+            zip_buffer.seek(0)
+            response = HttpResponse(zip_buffer, content_type="application/zip")
+            response[
+                "Content-Disposition"
+            ] = 'attachment; filename="exported_url_batches.zip"'
+            return response
+
+    export_selected_records.short_description = "Export Selected Records"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -274,31 +400,56 @@ class URLBatchAdmin(admin.ModelAdmin):
 @admin.register(CodeBatch)
 class CodeBatchAdmin(admin.ModelAdmin):
     resource_class = CodeBatchResource
-    list_display = ["count", "created_at", "user"]
+    list_display = ["__str__", "count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [PurchasingCodeInline]
-    actions = [archive_selected, 'export_selected_record']
+    actions = [archive_selected, "export_selected_records"]
 
-    def export_selected_record(self, request, queryset):
-
-        record = queryset.first()
-        export_format = request.POST.get('file_format', 'csv')
+    def export_selected_records(self, request, queryset):
+        export_format = request.POST.get("file_format", "xlsx")
         resource = self.resource_class()
-        resource.context = {'export_format': export_format}
+        resource.context = {"export_format": export_format}
 
-        dataset = resource.export([record])
-
-        # Determine the export format
-        if export_format == 'xlsx':
+        if export_format == "xlsx":
             file_format = XLSX()
         else:
             file_format = CSV()
 
-        export_data = file_format.export_data(dataset)
-        response = HttpResponse(export_data, content_type=file_format.get_content_type())
-        response['Content-Disposition'] = f'attachment; filename="{record}.xlsx"'
+        responses = []
+        for batch in queryset:
+            dataset = resource.export([batch])
 
-        return response
+            batch_name = str(batch).replace(" ", "_")
+            file_name = f"{batch_name}_{batch.pk}.{file_format.get_extension()}"
+            export_data = file_format.export_data(dataset)
+            response = HttpResponse(
+                export_data, content_type=file_format.get_content_type()
+            )
+            response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+            responses.append((file_name, response.content))
+
+        if len(responses) == 1:
+            return HttpResponse(
+                responses[0][1],
+                content_type=file_format.get_content_type(),
+                headers={
+                    "Content-Disposition": f'attachment; filename="{responses[0][0]}"'
+                },
+            )
+        else:
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for file_name, content in responses:
+                    zip_file.writestr(file_name, content)
+
+            zip_buffer.seek(0)
+            response = HttpResponse(zip_buffer, content_type="application/zip")
+            response[
+                "Content-Disposition"
+            ] = 'attachment; filename="exported_code_batches.zip"'
+            return response
+
+    export_selected_records.short_description = "Export Selected Records"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

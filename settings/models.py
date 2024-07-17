@@ -1,7 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 PRODUCTS_CHOICES = [
     ("product1", "Product 1"),
@@ -51,3 +53,24 @@ class LinkDuration(models.Model):
 
     def __str__(self):
         return str(self.duration)
+
+
+class CRUDLog(models.Model):
+    ACTION_CHOICES = [
+        ('CREATE', 'Created'),
+        ('UPDATE', 'Updated'),
+        ('DELETE', 'Deleted'),
+    ]
+
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    object_name = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.action} ({self.object_name}) by {self.user} at {self.timestamp.strftime('%Y-%m-%d, %H:%M %p')}"
+
+    class Meta:
+        verbose_name = "Log"
+        verbose_name_plural = "Logs"
+        ordering = ("-timestamp",)
