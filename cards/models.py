@@ -77,8 +77,8 @@ class NFCCard(models.Model):
     updated_at = models.DateTimeField("Updated at", auto_now=True)
 
     class Meta:
-        verbose_name = "NFC Card"
-        verbose_name_plural = "NFC Cards"
+        verbose_name = "URL"
+        verbose_name_plural = "URLs"
         ordering = ("-created_at",)
 
     def get_url(self):

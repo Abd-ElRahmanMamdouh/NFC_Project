@@ -15,16 +15,8 @@ PRODUCTS_CHOICES = [
 
 class ProductGroup(models.Model):
     title = models.CharField("Title", max_length=500)
-    price = models.DecimalField(
-        "Price",
-        blank=True,
-        null=True,
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00"))],
-    )
     products = models.CharField(
-        "Products", blank=True, null=True, max_length=500
+        "Products", max_length=500
     )
     created_at = models.DateTimeField("Created at", auto_now_add=True)
     updated_at = models.DateTimeField("Updated at", auto_now=True)
@@ -44,7 +36,7 @@ class ProductGroup(models.Model):
 
 
 class LinkDuration(models.Model):
-    duration = models.PositiveIntegerField("Duration", default=1)
+    duration = models.PositiveIntegerField("Duration in Years", default=1)
 
     class Meta:
         verbose_name = "Link Duration"
@@ -52,7 +44,7 @@ class LinkDuration(models.Model):
         ordering = ("-id",)
 
     def __str__(self):
-        return str(self.duration)
+        return f"Link duration: {self.duration}"
 
 
 class CRUDLog(models.Model):
@@ -65,7 +57,7 @@ class CRUDLog(models.Model):
     action = models.CharField(max_length=10, choices=ACTION_CHOICES)
     object_name = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField("Created At", auto_now_add=True)
 
     def __str__(self):
         return f"{self.action} ({self.object_name}) by {self.user} at {self.timestamp.strftime('%Y-%m-%d, %H:%M %p')}"

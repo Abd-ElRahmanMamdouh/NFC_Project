@@ -6,7 +6,7 @@ class ProductGroupForm(forms.ModelForm):
     products = forms.MultipleChoiceField(
         choices=PRODUCTS_CHOICES,
         widget=forms.CheckboxSelectMultiple,
-        required=False
+        required=True
     )
 
     class Meta:

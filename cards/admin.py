@@ -1,20 +1,14 @@
 import uuid
 
-from io import BytesIO
-import zipfile
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
-from django.urls import path
+from django.urls import path, reverse
 from django.utils.safestring import mark_safe
-from import_export.admin import ExportMixin
-from import_export.fields import Field
-from import_export.formats.base_formats import CSV, XLSX
-from import_export.resources import ModelResource
+from core.mixins import ExportWithInlineMixin, ExportMixin, DataSetMixin
 from settings.models import ProductGroup
-from tablib import Dataset
 
 from .forms import CodeBulkCreateForm, URLBulkCreateForm
 from .models import CodeBatch, NFCCard, PurchasingCode, URLBatch
@@ -27,25 +21,61 @@ def archive_selected(modeladmin, request, queryset):
     messages.success(request, "Selected records have been archived.")
 
 
-class NFCCardResource(ModelResource):
-    class Meta:
-        fields = ("uuid", "user__username", "card_code", "created_at", "updated_at")
-        model = NFCCard
+class NFCCardResource(DataSetMixin):
+
+    def export(self, queryset=None, *args, **kwargs):
+        queryset = queryset or self.get_queryset()
+        data = []
+        for card in queryset:
+            last_updated = card.updated_at.strftime('%Y-%m-%d, %H:%M %p')
+            try:
+                card_code = card.card_code
+            except PurchasingCode.DoesNotExist:
+                card_code = "No Code connected yet"
+            data.append({
+                'UUID': str(card),
+                "Card User": card.user.username
+                if card.user
+                else "No User connected yet",
+                "Card Code": card_code,
+                "URL": card.get_url(),
+                "Batch": card.batch,
+                "Last Updated": last_updated,
+            })
+
+        headers = ['UUID', "Card User", "Card Code", "URL", "Batch", "Last Updated"]
+        dataset = self._create_dataset(data, headers)
+
+        return dataset
 
 
-class PurchasingCodeResource(ModelResource):
-    class Meta:
-        fields = (
-            "group__title",
-            "poduct",
-            "card__uuid",
-            "duration__duration",
-            "code",
-            "passwod",
-            "created_at",
-            "updated_at",
-        )
-        model = PurchasingCode
+class PurchasingCodeResource(DataSetMixin):
+
+    def export(self, queryset=None, *args, **kwargs):
+        queryset = queryset or self.get_queryset()
+        data = []
+        for code in queryset:
+            last_updated = code.updated_at.strftime('%Y-%m-%d, %H:%M %p')
+            if code.group:
+                product = code.group
+            else:
+                product = code.get_product_display()
+            data.append({
+                'Code': str(code),
+                "Password": code.password,
+                "Duration": code.duration,
+                "Product": product,
+                "Batch": code.batch,
+                "Card": code.card
+                if code.card
+                else "No Card connected yet",
+                'Last Updated': last_updated,
+            })
+
+        headers = ['Code', "Password", "Duration", 'Product', 'Batch', "Card", 'Last Updated']
+        dataset = self._create_dataset(data, headers)
+
+        return dataset
 
 
 @admin.register(NFCCard)
@@ -54,6 +84,7 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
     fields = ["uuid", "user"]
     readonly_fields = ["uuid", "batch"]
     resource_class = NFCCardResource
+    actions = ["export_selected_records"]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -119,6 +150,7 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
     fields = ["group", "product", "duration", "card", "code", "password"]
     readonly_fields = ["code", "password", "card"]
     resource_class = PurchasingCodeResource
+    actions = ["export_selected_records"]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -213,19 +245,7 @@ class PurchasingCodeInline(admin.TabularInline):
     show_change_link = True
 
 
-class URLBatchResource(ModelResource):
-    batch_url = Field(column_name="URL")
-    batch_str = Field(column_name="Batch")
-
-    class Meta:
-        fields = ("batch_str", "batch_url")
-        model = URLBatch
-
-    def dehydrate_batch_url(self, batch):
-        return None
-
-    def dehydrate_batch_str(self, batch):
-        return str(batch)
+class URLBatchResource(DataSetMixin):
 
     def export(self, queryset=None, *args, **kwargs):
         queryset = queryset or self.get_queryset()
@@ -263,31 +283,8 @@ class URLBatchResource(ModelResource):
 
         return dataset
 
-    def _create_dataset(self, data, headers):
-        dataset = Dataset()
-        dataset.headers = headers
-        for row in data:
-            dataset.append([row[col] for col in headers])
 
-        return dataset
-
-
-class CodeBatchResource(ModelResource):
-    code = Field(column_name="Code")
-    batch_str = Field(column_name="Batch")
-
-    class Meta:
-        fields = (
-            "batch_str",
-            "code",
-        )
-        model = CodeBatch
-
-    def dehydrate_code(self, batch):
-        return None
-
-    def dehydrate_batch_str(self, batch):
-        return str(batch)
+class CodeBatchResource(DataSetMixin):
 
     def export(self, queryset=None, *args, **kwargs):
         queryset = queryset or self.get_queryset()
@@ -326,68 +323,15 @@ class CodeBatchResource(ModelResource):
 
         return dataset
 
-    def _create_dataset(self, data, headers):
-        dataset = Dataset()
-        dataset.headers = headers
-        for row in data:
-            dataset.append([row[col] for col in headers])
-
-        return dataset
-
 
 @admin.register(URLBatch)
-class URLBatchAdmin(admin.ModelAdmin):
+class URLBatchAdmin(ExportWithInlineMixin, admin.ModelAdmin):
     resource_class = URLBatchResource
     list_display = ["__str__", "count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [NFCCardInline]
     actions = [archive_selected, "export_selected_records"]
-
-    def export_selected_records(self, request, queryset):
-        export_format = request.POST.get("file_format", "xlsx")
-        resource = self.resource_class()
-        resource.context = {"export_format": export_format}
-
-        if export_format == "xlsx":
-            file_format = XLSX()
-        else:
-            file_format = CSV()
-
-        responses = []
-        for batch in queryset:
-            dataset = resource.export([batch])
-
-            batch_name = str(batch).replace(" ", "_")
-            file_name = f"{batch_name}_{batch.pk}.{file_format.get_extension()}"
-            export_data = file_format.export_data(dataset)
-            response = HttpResponse(
-                export_data, content_type=file_format.get_content_type()
-            )
-            response["Content-Disposition"] = f'attachment; filename="{file_name}"'
-            responses.append((file_name, response.content))
-
-        if len(responses) == 1:
-            return HttpResponse(
-                responses[0][1],
-                content_type=file_format.get_content_type(),
-                headers={
-                    "Content-Disposition": f'attachment; filename="{responses[0][0]}"'
-                },
-            )
-        else:
-            zip_buffer = BytesIO()
-            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-                for file_name, content in responses:
-                    zip_file.writestr(file_name, content)
-
-            zip_buffer.seek(0)
-            response = HttpResponse(zip_buffer, content_type="application/zip")
-            response[
-                "Content-Disposition"
-            ] = 'attachment; filename="exported_url_batches.zip"'
-            return response
-
-    export_selected_records.short_description = "Export Selected Records"
+    change_list_template = "admin/custom_change_list.html"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -396,60 +340,34 @@ class URLBatchAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('add-url-batch/', self.admin_site.admin_view(self.add_new_batch), name='add_url_batch'),
+            path('view-all-urls/', self.admin_site.admin_view(self.view_all), name='view_all_urls'),
+        ]
+        return custom_urls + urls
+
+    def add_new_batch(self, request):
+        return HttpResponseRedirect(reverse('admin:url_bulk'))
+
+    def view_all(self, request):
+        return HttpResponseRedirect(reverse('admin:cards_nfccard_changelist'))
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['url_batch'] = True
+        return super().changelist_view(request, extra_context=extra_context)
+
 
 @admin.register(CodeBatch)
-class CodeBatchAdmin(admin.ModelAdmin):
+class CodeBatchAdmin(ExportWithInlineMixin, admin.ModelAdmin):
     resource_class = CodeBatchResource
     list_display = ["__str__", "count", "created_at", "user"]
     readonly_fields = ["user"]
     inlines = [PurchasingCodeInline]
     actions = [archive_selected, "export_selected_records"]
-
-    def export_selected_records(self, request, queryset):
-        export_format = request.POST.get("file_format", "xlsx")
-        resource = self.resource_class()
-        resource.context = {"export_format": export_format}
-
-        if export_format == "xlsx":
-            file_format = XLSX()
-        else:
-            file_format = CSV()
-
-        responses = []
-        for batch in queryset:
-            dataset = resource.export([batch])
-
-            batch_name = str(batch).replace(" ", "_")
-            file_name = f"{batch_name}_{batch.pk}.{file_format.get_extension()}"
-            export_data = file_format.export_data(dataset)
-            response = HttpResponse(
-                export_data, content_type=file_format.get_content_type()
-            )
-            response["Content-Disposition"] = f'attachment; filename="{file_name}"'
-            responses.append((file_name, response.content))
-
-        if len(responses) == 1:
-            return HttpResponse(
-                responses[0][1],
-                content_type=file_format.get_content_type(),
-                headers={
-                    "Content-Disposition": f'attachment; filename="{responses[0][0]}"'
-                },
-            )
-        else:
-            zip_buffer = BytesIO()
-            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-                for file_name, content in responses:
-                    zip_file.writestr(file_name, content)
-
-            zip_buffer.seek(0)
-            response = HttpResponse(zip_buffer, content_type="application/zip")
-            response[
-                "Content-Disposition"
-            ] = 'attachment; filename="exported_code_batches.zip"'
-            return response
-
-    export_selected_records.short_description = "Export Selected Records"
+    change_list_template = "admin/custom_change_list.html"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -457,3 +375,17 @@ class CodeBatchAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('add-code-batch/', self.admin_site.admin_view(self.add_new_batch), name='add_code_batch'),
+            path('view-all-codes/', self.admin_site.admin_view(self.view_all), name='view_all_codes'),
+        ]
+        return custom_urls + urls
+
+    def add_new_batch(self, request):
+        return HttpResponseRedirect(reverse('admin:code_bulk'))
+
+    def view_all(self, request):
+        return HttpResponseRedirect(reverse('admin:cards_purchasingcode_changelist'))

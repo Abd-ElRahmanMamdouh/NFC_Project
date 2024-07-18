@@ -212,7 +212,7 @@ JAZZMIN_SETTINGS = {
     "site_brand": "Chipper Group",
 
     # square logo to use for your site, must be present in static files, used for favicon and brand on top left
-    "site_logo": "img/logo.svg",
+    "site_logo": "img/logo.png",
 
     # Welcome text on the login screen
     "welcome_sign": "Admin Panel",
@@ -269,24 +269,24 @@ JAZZMIN_SETTINGS = {
     "hide_apps": ["auth"],
 
     # Hide these models when generating side menu (e.g auth.user)
-    "hide_models": ["archive.Archive"],
+    "hide_models": ["archive.Archive", "cards.NFCCard", "cards.PurchasingCode"],
 
     # List of apps (and/or models) to base side menu ordering off of (does not need to contain all apps/models)
     "order_with_respect_to": ["users", "cards", "cards.URLBatch", "cards.NFCCard", "settings", "archive"], #"books.author", "books.book"],
 
     # Custom links to append to app groups, keyed on app name
-    "custom_links": {
-        "cards": [
-            {"name": "URL Generator", 
-            "url": "admin:url_bulk", 
-            "icon": "fas fa-magic",
-            "permissions": ["cards.add_nfccard"]},
-            {"name": "Code Generator", 
-            "url": "admin:code_bulk", 
-            "icon": "fas fa-magic",
-            "permissions": ["cards.delete_urlbatch"]},
-        ],
-    },
+    # "custom_links": {
+    #     "cards": [
+    #         {"name": "URL Generator", 
+    #         "url": "admin:url_bulk", 
+    #         "icon": "fas fa-magic",
+    #         "permissions": ["cards.add_nfccard"]},
+    #         {"name": "Code Generator", 
+    #         "url": "admin:code_bulk", 
+    #         "icon": "fas fa-magic",
+    #         "permissions": ["cards.delete_urlbatch"]},
+    #     ],
+    # },
 
     # Custom icons for side menu apps/models See https://fontawesome.com/icons?d=gallery&m=free
     # for a list of icon classes

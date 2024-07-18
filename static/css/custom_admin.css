@@ -43,3 +43,15 @@ a[title="View on site"] {
 .main-footer {
     visibility: hidden !important;
 }
+
+.brand-link .brand-image {
+    float: left;
+    line-height: .8;
+    margin-left: .8rem;
+    margin-right: 0.5rem;
+    margin-top: -11px;
+    max-height: 50px;
+    width: 60px;
+    box-shadow: none !important;
+}
+
