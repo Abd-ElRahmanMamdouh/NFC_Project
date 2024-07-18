@@ -153,8 +153,6 @@ class PurchasingCode(models.Model):
     def __str__(self):
         return self.code
 
-    def generate_code_and_password(self):
+    def generate_code(self):
         if not self.code:
             self.code = unique_code_generator(self)
-        if not self.password:
-            self.password = unique_password_generator(self)

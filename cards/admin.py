@@ -187,7 +187,7 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
                         instance = PurchasingCode(
                             group=group, duration=duration, batch=batch
                         )
-                        instance.generate_code_and_password()
+                        instance.generate_code()
                         instances.append(instance)
                 else:
                     instances = []
@@ -195,7 +195,7 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
                         instance = PurchasingCode(
                             product=product, duration=duration, batch=batch
                         )
-                        instance.generate_code_and_password()
+                        instance.generate_code()
                         instances.append(instance)
                 PurchasingCode.objects.bulk_create(instances)
                 self.message_user(
