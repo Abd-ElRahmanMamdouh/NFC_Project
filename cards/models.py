@@ -1,8 +1,10 @@
+from core.utils import unique_code_generator, unique_password_generator
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.urls import reverse
+from hitcount.models import HitCount
 from settings.models import PRODUCTS_CHOICES, LinkDuration, ProductGroup
-from core.utils import unique_code_generator, unique_password_generator
 
 User = get_user_model()
 
@@ -73,6 +75,7 @@ class NFCCard(models.Model):
         blank=True,
         null=True,
     )
+    password = models.CharField("Password", blank=True, null=True, max_length=50)
     created_at = models.DateTimeField("Created at", auto_now_add=True)
     updated_at = models.DateTimeField("Updated at", auto_now=True)
 
@@ -84,6 +87,11 @@ class NFCCard(models.Model):
     def get_url(self):
         base_url = "http://127.0.0.1:8000/services/landingPage/"
         return f"{base_url}{self.uuid}/"
+
+    hit_count_generic = GenericRelation(
+        HitCount, object_id_field='object_pk',
+        related_query_name='hit_count_generic_relation'
+    )
 
     def __str__(self):
         return str(self.uuid)

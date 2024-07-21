@@ -31,6 +31,7 @@ urlpatterns = [
     path('accounts/', include('users.passwords.urls')),
     path('services/', include('cards.urls')),
     path('', home, name='home'),
+    path('hitcount/', include(('hitcount.urls', 'hitcount'), namespace='hitcount')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

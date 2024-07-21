@@ -1,6 +1,6 @@
 from django import forms
 from settings.models import ProductGroup, PRODUCTS_CHOICES
-from cards.models import PurchasingCode
+from .models import PurchasingCode
 
 
 class URLBulkCreateForm(forms.Form):

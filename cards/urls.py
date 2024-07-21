@@ -11,4 +11,5 @@ urlpatterns = [
         views.NFCCardView.as_view(),
         name="landing_page",
     ),
+    path("cards-link/<uidb64>/", views.link_new_card, name="link_new_card")
 ]

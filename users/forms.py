@@ -126,4 +126,4 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ("email",)
+        fields = ("email", "username")

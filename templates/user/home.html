@@ -1,17 +1,23 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load hitcount_tags %}
 {% load i18n %}
+{% load custom_filters %}
 {% block title %}
-{% trans 'My account' %}
+Dashboard
 {% endblock %}
 {% block content %}
 
 
+
 <div class="container mt-5 pt-5">
-    <a href="{% url 'users:account_update' %}" class="btn primary-btn">
-        <i class="fas fa-edit"></i>{% trans 'Edit' %}
-    </a>
+    <h3>Your Account Details</h3>
     <div class="card w-100 mt-3">
+        <div class="card-header">
+            <a href="{% url 'users:account_update' %}" class="btn primary-btn">
+                <i class="fas fa-edit"></i>{% trans 'Edit' %}
+            </a>
+        </div>
         <div class="card-body">
             <p>{% trans "Username" %}: {{ user.username }}</p>
             <p>{% trans "Email" %}:
@@ -30,7 +36,31 @@
             </p>
         </div>
     </div>
+    <hr>
+    <h3>Your Cards | Total Views: {{ total_hits }}</h3>
+    {% for card in user.user_cards.all %}
+    {% get_hit_count for card as hits %}
+    <div class="card w-100 mt-3">
+        <div class="card-header">
+            <h4>{{ card }} <a href="{{ card.get_absolute_url }}" class="btn main-btn" target="_blank">View on Site</a></h4>
+        </div>
+        <div class="card-body">
+            <p>
+                <a href="{% url 'cards:set_password' card.uuid card.pk %}" class="btn main-btn"> 
+                {% if card.password %}Update Password {% else %}Set Password{% endif %}
+                </a>
+            </p>
+            <p>Password: {% if card.password %}{{ card.password|mask_password }}{% else %}<span class="text-danger">{% trans 'not specified' %}</span>{% endif %}</p>
+            <p>
+                Views: <small class="ms-3"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
+            </p>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-danger">No Cards Yet</p>
+    {% endfor %}
 </div>
+
 
 
 

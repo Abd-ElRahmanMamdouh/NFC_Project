@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'import_export',
+    'hitcount',
 
     # Project Apps
     'users.apps.UsersConfig',
@@ -266,7 +267,7 @@ JAZZMIN_SETTINGS = {
     "navigation_expanded": False,
 
     # Hide these apps when generating side menu e.g (auth)
-    "hide_apps": ["auth"],
+    "hide_apps": ["auth","hitcount"],
 
     # Hide these models when generating side menu (e.g auth.user)
     "hide_models": ["archive.Archive", "cards.NFCCard", "cards.PurchasingCode"],
