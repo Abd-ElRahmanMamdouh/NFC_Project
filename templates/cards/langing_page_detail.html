@@ -13,15 +13,40 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             {% if card.user %}
-            <div class="col-md-12 text-center">
-                <h5 class="display-1">Testing Landing Page</h5>
-                <h3>This is a test page for Card: <br>
-                     <span class="text-success">{{ card }}</span>
-                     <span class="text-success">{{ card.user }}</span>
-                </h3>
-                {% get_hit_count for card as hits %}
-                Views: <small class="ms-3 color"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
-            </div>
+                {% if card.password %}
+                    {% if request.session.password_correct or request.user == card.user %}
+                    <div class="col-md-12 text-center">
+                        <h5 class="display-1">Testing Landing Page</h5>
+                        <h3>This is a test page for Card: <br>
+                            <span class="text-success">{{ card }}</span>
+                            <span class="text-success">{{ card.user }}</span>
+                        </h3>
+                        {% get_hit_count for card as hits %}
+                        Views: <small class="ms-3 color"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
+                    </div>
+                    {% else %}
+                    <div class="col-md-12 text-center">
+                        <h2>This card is password protected</h2>
+                        <div class="mt-4">
+                            <form method="POST" action="{% url 'cards:check_password' card.uuid %}">
+                                {% csrf_token %}
+                                <input type="password" name="password" class="form-control custom-input" placeholder="Password">
+                                <input type="submit" name="submit" value="Submit" class="btn main-btn">
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                <div class="col-md-12 text-center">
+                    <h5 class="display-1">Testing Landing Page</h5>
+                    <h3>This is a test page for Card: <br>
+                        <span class="text-success">{{ card }}</span>
+                        <span class="text-success">{{ card.user }}</span>
+                    </h3>
+                    {% get_hit_count for card as hits %}
+                    Views: <small class="ms-3 color"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
+                </div>
+                {% endif %}
             {% else %}
             <div class="col-md-12 text-center">
                 <div class="col-md-12 text-center">

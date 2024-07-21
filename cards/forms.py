@@ -1,6 +1,6 @@
 from django import forms
 from settings.models import ProductGroup, PRODUCTS_CHOICES
-from .models import PurchasingCode
+from .models import PurchasingCode, NFCCard
 
 
 class URLBulkCreateForm(forms.Form):
@@ -28,4 +28,13 @@ class CodeBulkCreateForm(forms.ModelForm):
         fields = ["count", "duration"]
         widgets = {
             "duration": forms.Select(attrs={"class": "custom-select"}),
+        }
+
+
+class NFCCardForm(forms.ModelForm):
+    class Meta:
+        model = NFCCard
+        fields = ['password']
+        widgets = {
+            "password": forms.PasswordInput()
         }
