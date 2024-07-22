@@ -10,55 +10,44 @@ Dashboard
 
 
 
-<div class="container mt-5 pt-5">
-    <h3>Your Account Details</h3>
-    <div class="card w-100 mt-3">
-        <div class="card-header">
-            <a href="{% url 'users:account_update' %}" class="btn primary-btn">
-                <i class="fas fa-edit"></i>{% trans 'Edit' %}
-            </a>
-        </div>
-        <div class="card-body">
-            <p>{% trans "Username" %}: {{ user.username }}</p>
-            <p>{% trans "Email" %}:
-                {% if user.email %}
-                {{ user.email }}
-                {% else %}
-                <span class="text-danger">{% trans 'not specified' %}</span>
-                {% endif %}
-            </p>
-            <p>{% trans "Full name" %}:
-                {% if user.full_name %}
-                {{ user.full_name }}
-                {% else %}
-                <span class="text-danger">{% trans 'not specified' %}</span>
-                {% endif %}
-            </p>
-        </div>
-    </div>
-    <hr>
-    <h3>Your Cards | Total Views: {{ total_hits }}</h3>
-    {% for card in user.user_cards.all %}
-    {% get_hit_count for card as hits %}
-    <div class="card w-100 mt-3">
-        <div class="card-header">
-            <h4>{{ card }} <a href="{{ card.get_absolute_url }}" class="btn main-btn" target="_blank">View on Site</a></h4>
-        </div>
-        <div class="card-body">
-            <p>
-                <a href="{% url 'cards:set_password' card.uuid card.pk %}" class="btn main-btn"> 
-                {% if card.password %}Update Password {% else %}Set Password{% endif %}
-                </a>
-            </p>
-            <p>Password: {% if card.password %}{{ card.password|mask_password }}{% else %}<span class="text-danger">{% trans 'not specified' %}</span>{% endif %}</p>
-            <p>
-                Views: <small class="ms-3"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
-            </p>
+<div class="container mt-5">
+    <div class="row">
+        {% include 'base/user_bar.html' %}
+        <div class="col">
+            <h3>Your Account Details</h3>
+            <div class="card w-100 mt-3">
+                <div class="card-header">
+                    <a href="{% url 'users:account_update' %}" class="btn primary-btn">
+                        <i class="fas fa-edit"></i>{% trans 'Edit' %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p>{% trans "Username" %}: {{ user.username }}</p>
+                    <p>{% trans "Email" %}:
+                        {% if user.email %}
+                        {{ user.email }}
+                        {% else %}
+                        <span class="text-danger">{% trans 'not specified' %}</span>
+                        {% endif %}
+                    </p>
+                    <p>{% trans "First name" %}:
+                        {% if user.first_name %}
+                        {{ user.first_name }}
+                        {% else %}
+                        <span class="text-danger">{% trans 'not specified' %}</span>
+                        {% endif %}
+                    </p>
+                    <p>{% trans "Last name" %}:
+                        {% if user.last_name %}
+                        {{ user.last_name }}
+                        {% else %}
+                        <span class="text-danger">{% trans 'not specified' %}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
-    {% empty %}
-    <p class="text-danger">No Cards Yet</p>
-    {% endfor %}
 </div>
 
 

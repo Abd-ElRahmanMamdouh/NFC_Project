@@ -20,8 +20,8 @@ urlpatterns = [
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path(
         "login/",
-        views.CustomLoginView.as_view(extra_context={"active": "profile"}),
+        views.CustomLoginView.as_view(extra_context={"active": "login"}),
         name="login",
     ),
-    path("register/", views.RegisterView.as_view(), name="register"),
+    path("register/", views.RegisterView.as_view(extra_context={"active": "register"}), name="register"),
 ]

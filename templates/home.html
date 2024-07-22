@@ -6,12 +6,19 @@
 {% endblock %}
 {% block content %}
 
-
-{% if user.user_admin %}
-    {% include 'base/dashboard.html' %}
-{% else %}
-    {% include 'base/regular_user.html' %}
-{% endif %}
-
-
+<div class="container mt-5 text-center">
+    <div class="row">
+        {% include 'base/user_bar.html' %}
+        <div class="col">
+            <h1>Welcome
+                {% if request.user.first_name %}
+                {{ request.user.first_name }}
+                {% else %}
+                {{ request.user.username }}
+                {% endif %}
+            </h1>
+            <h3>Start Using your cards</h3>
+        </div>
+    </div>
+</div>
 {% endblock %}

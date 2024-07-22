@@ -88,6 +88,9 @@ class NFCCard(models.Model):
         base_url = "http://127.0.0.1:8000/services/landingPage/"
         return f"{base_url}{self.uuid}/"
 
+    def check_password(self, password):
+        return self.password == password
+
     hit_count_generic = GenericRelation(
         HitCount, object_id_field='object_pk',
         related_query_name='hit_count_generic_relation'

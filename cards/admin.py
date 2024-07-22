@@ -1,5 +1,5 @@
 import uuid
-
+import re
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth import get_user_model
@@ -83,8 +83,21 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ["__str__", "get_url", "card_code", "created_at", "updated_at"]
     fields = ["uuid", "user"]
     readonly_fields = ["uuid", "batch"]
+    search_fields = ["uuid", "card_code__code"]
     resource_class = NFCCardResource
     actions = ["export_selected_records"]
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        
+        custom_queryset = self.model.objects.filter(
+            id__in=[
+                obj.id for obj in self.model.objects.all()
+                if search_term.lower() in obj.get_url().lower()
+            ]
+        )
+        queryset |= custom_queryset
+        return queryset, use_distinct
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -149,6 +162,7 @@ class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ["__str__", "created_at", "updated_at"]
     fields = ["group", "product", "duration", "card", "code", "password"]
     readonly_fields = ["code", "password", "card"]
+    search_fields = ["group__title", "product", "duration", "code__uuid"]
     resource_class = PurchasingCodeResource
     actions = ["export_selected_records"]
 
@@ -329,6 +343,7 @@ class URLBatchAdmin(ExportWithInlineMixin, admin.ModelAdmin):
     resource_class = URLBatchResource
     list_display = ["__str__", "count", "created_at", "user"]
     readonly_fields = ["user"]
+    search_fields = ["count", "user__username"]
     inlines = [NFCCardInline]
     actions = [archive_selected, "export_selected_records"]
     change_list_template = "admin/custom_change_list.html"
@@ -365,6 +380,7 @@ class CodeBatchAdmin(ExportWithInlineMixin, admin.ModelAdmin):
     resource_class = CodeBatchResource
     list_display = ["__str__", "count", "created_at", "user"]
     readonly_fields = ["user"]
+    search_fields = ["count", "user__username"]
     inlines = [PurchasingCodeInline]
     actions = [archive_selected, "export_selected_records"]
     change_list_template = "admin/custom_change_list.html"

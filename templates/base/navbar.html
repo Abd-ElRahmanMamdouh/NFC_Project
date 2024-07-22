@@ -11,21 +11,12 @@
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto w-100 justify-content-end">
-                {% if user.is_authenticated %}
+                {% if not user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link {% if active == 'profile' %}active{% endif %}" href="{% url 'users:user_profile' %}"><i class="fas fa-address-card"></i> Profile</a>
+                    <a class="nav-link {% if active == 'login' %}active{% endif %}" href="{% url 'users:login' %}">Login</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'users:logout' %}"><i class="fas fa-sign-out-alt"></i> Log out</a>
-                </li>
-                {% if user.is_superuser or user.is_staff %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'admin:index' %}"><i class="fas fa-external-link-alt"></i> Manage site</a>
-                </li>
-                {% endif %}
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link {% if active == 'profile' %}active{% endif %}" href="{% url 'users:login' %}">Login</a>
+                    <a class="nav-link {% if active == 'register' %}active{% endif %}" href="{% url 'users:register' %}">Register</a>
                 </li>
                 {% endif %}
             </ul>

@@ -2,9 +2,9 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import UpdateView
+from django.views.generic import UpdateView, ListView
+from django.urls import reverse_lazy
 from hitcount.views import HitCountDetailView
-from django.contrib.auth.decorators import login_required
 from .forms import NFCCardForm
 from .models import NFCCard, PurchasingCode
 
@@ -60,9 +60,15 @@ class NFCCardUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = NFCCard
     template_name = 'base/forms/create_update.html'
     success_message = "Password successfully updated"
+    success_url = reverse_lazy("cards:user_dashboard")
     form_class = NFCCardForm
 
     def get_queryset(self):
         user = self.request.user
         qs = self.model.objects.filter(user=user)
         return qs
+
+
+class NFCCardListView(LoginRequiredMixin, ListView):
+    model = NFCCard
+    template_name = 'user/dashboard.html'
