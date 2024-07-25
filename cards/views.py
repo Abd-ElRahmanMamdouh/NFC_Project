@@ -1,5 +1,6 @@
 from core.utils import handle_uploaded_file
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, redirect, render
@@ -79,6 +80,7 @@ class NFCCardListView(LoginRequiredMixin, ListView):
     template_name = 'user/dashboard.html'
 
 
+@login_required
 def update_business_card(request, uidb64):
     card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
     if request.method == "POST":
@@ -125,6 +127,7 @@ def update_business_card(request, uidb64):
     return render(request, 'cards/forms/business_card.html', {'form': form, 'logo_url': logo_url})
 
 
+@login_required
 def update_gallery(request, uidb64):
     card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
     
@@ -134,7 +137,9 @@ def update_gallery(request, uidb64):
         if form.is_valid():
             files = request.FILES.getlist('images')
             show = form.cleaned_data.get('show')
-            image_urls = []
+            existing_data = card.data or {}
+            existing_images = existing_data.get('gallery', {}).get('images', [])
+            image_urls = existing_images or []
             for file in files:
                 file_url = handle_uploaded_file(request, file)
                 image_urls.append(file_url)
@@ -155,13 +160,29 @@ def update_gallery(request, uidb64):
             messages.error(request, msg)
             return redirect("cards:user_dashboard")
     else:
-        initial_data = card.data.get('gallery', {})
         gallery_data = card.data.get('gallery', {}).get('images', [])
-        form = GalleryForm(initial=initial_data)
+        form = GalleryForm()
 
-    return render(request, 'cards/forms/gallery.html', {'form': form, 'gallery_data': gallery_data})
+    return render(request, 'cards/forms/gallery.html', {'form': form, 'gallery_data': gallery_data, 'uuid': card.uuid})
 
 
+@login_required
+def remove_image(request, uidb64, image_url):
+    card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
+    data = card.data or {}
+
+    gallery_images = data.get('gallery', {}).get('images', [])
+
+    if image_url in gallery_images:
+        gallery_images.remove(image_url)
+
+    data['gallery'] = {'images': gallery_images}
+    card.data = data
+    card.save()
+    return redirect('cards:update_gallery', uidb64=uidb64)
+
+
+@login_required
 def update_redirect_url(request, uidb64):
     card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
     if request.method == "POST":
@@ -198,21 +219,26 @@ def update_redirect_url(request, uidb64):
     
     return render(request, 'cards/forms/redirect_url.html', {'form': form})
 
+
+@login_required
 def update_video_message(request, uidb64):
     text = "This Page is under development"
     return render(request, 'cards/forms/test.html', {'text': text})
 
 
+@login_required
 def update_product_viewer(request, uidb64):
     text = "This Page is under development"
     return render(request, 'cards/forms/test.html', {'text': text})
 
 
+@login_required
 def update_pdf_viewer(request, uidb64):
     text = "This Page is under development"
     return render(request, 'cards/forms/test.html', {'text': text})
 
 
+@login_required
 def update_letter(request, uidb64):
     text = "This Page is under development"
     return render(request, 'cards/forms/test.html', {'text': text})

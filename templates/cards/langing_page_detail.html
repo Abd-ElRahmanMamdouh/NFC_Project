@@ -16,13 +16,13 @@
                 {% if card.password %}
                     {% if request.session.password_correct or request.user == card.user %}
                     <div class="col-md-12 text-center">
-                        <h5 class="display-1">Testing Landing Page</h5>
-                        <h3>This is a test page for Card: <br>
-                            <span class="text-success">{{ card }}</span>
-                            <span class="text-success">{{ card.user }}</span>
-                        </h3>
-                        {% get_hit_count for card as hits %}
-                        Views: <small class="ms-3 color"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
+                        {% if card.data.choosen_product.product == "business_card" %}
+                        {% include 'cards/base/business_card.html' %}
+                        {% elif card.data.choosen_product.product == "gallery" %}
+                        {% include 'cards/base/gallery.html' %}
+                        {% elif card.data.choosen_product.product == "redirect_url" %}
+                        {% include 'cards/base/redirect_url.html' %}
+                        {% endif %}
                     </div>
                     {% else %}
                     <div class="col-md-12 text-center">
@@ -38,13 +38,13 @@
                     {% endif %}
                 {% else %}
                 <div class="col-md-12 text-center">
-                    <h5 class="display-1">Testing Landing Page</h5>
-                    <h3>This is a test page for Card: <br>
-                        <span class="text-success">{{ card }}</span>
-                        <span class="text-success">{{ card.user }}</span>
-                    </h3>
-                    {% get_hit_count for card as hits %}
-                    Views: <small class="ms-3 color"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
+                    {% if card.data.choosen_product == "business_card" %}
+                    {% include 'base/business_card.html' %}
+                    {% elif card.data.choosen_product == "gallery" %}
+                    {% include 'base/gallery.html' %}
+                    {% elif card.data.choosen_product == "redirect_url" %}
+                    {% include 'base/redirect_url.html' %}
+                    {% endif %}
                 </div>
                 {% endif %}
             {% else %}
@@ -70,4 +70,25 @@
 </div>
 
 
+{% endblock %}
+
+
+{% block extrajs %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var countdownElement = document.getElementById('countdown');
+    var redirectLink = document.getElementById('redirect-link');
+    var countdown = 10; // seconds
+
+    var interval = setInterval(function() {
+        countdown--;
+        countdownElement.textContent = countdown;
+        if (countdown <= 0) {
+            clearInterval(interval);
+            window.location.href = redirectLink.href;
+        }
+    }, 1000);
+});
+</script>
 {% endblock %}

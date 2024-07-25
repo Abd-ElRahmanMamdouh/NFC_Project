@@ -18,11 +18,13 @@ Update Gallery
                     {% for image in gallery_data %}
                     <div class="image-item">
                         <img src="{{ image }}" alt="Image">
-                        <button class="remove-button" onclick="removeImage('{{ image }}')">X</button>
+                        <a href="{% url 'cards:remove_image' uidb64=uuid image_url=image %}" class="remove-button btn btn-sm danger-btn">X</a>
+
                     </div>
                     {% endfor %}
                 </div>
                 <input type="file" class="form-control" name="images" multiple>
+                <input type="hidden" name="images-data" id="images-data" value='{{ gallery_data }}'>
                 <br>
                 {{ form.show|as_crispy_field }}
                 <button class="btn main-btn" type="submit">Save</button>
@@ -32,24 +34,4 @@ Update Gallery
     </div>
 </div>
 
-{% endblock %}
-
-{% block extrajs %}
-
-
-<script>
-    function removeImage(imageUrl) {
-        const imageContainer = document.getElementById('image-container');
-        const imagesData = document.getElementById('images-data');
-        const currentImages = JSON.parse(imagesData.value || '[]');
-        const filteredImages = currentImages.filter(url => url !== imageUrl);
-        imagesData.value = JSON.stringify(filteredImages);
-        imageContainer.innerHTML = filteredImages.map(url => `
-            <div class="image-item">
-                <img src="${url}" alt="Image">
-                <button class="remove-button" onclick="removeImage('${url}')">X</button>
-            </div>
-        `).join('');
-    }
-</script>
 {% endblock %}

@@ -25,6 +25,7 @@ urlpatterns = [
     path("check-password/<uidb64>/", views.check_password, name="check_password"),
     path("update-business-card/<uidb64>/", views.update_business_card, name="update_business_card"),
     path("update-gallery/<uidb64>/", views.update_gallery, name="update_gallery"),
+    path("remove-image/<uidb64>/<path:image_url>/", views.remove_image, name="remove_image"),
     path("update-redirect-url/<uidb64>/", views.update_redirect_url, name="update_redirect_url"),
     path("update-video-message/<uidb64>/", views.update_video_message, name="update_video_message"),
     path("update-product-viewer/<uidb64>/", views.update_product_viewer, name="update_product_viewer"),

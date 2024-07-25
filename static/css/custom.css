@@ -243,8 +243,5 @@
     position: absolute;
     top: 0;
     right: 0;
-    background: red;
     color: white;
-    border: none;
-    cursor: pointer;
 }
