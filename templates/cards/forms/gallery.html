@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}
+Update Gallery
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container my-5 pt-5">
+    <h2 class="mainTopic">Update Gallery</h2>
+    <div class="card container">
+        <div class="card-body">
+            <form method="POST" class="mb-4" enctype="multipart/form-data" id="gallery-form">
+                {% csrf_token %}
+                <div class="image-container" id="image-container">
+                    {% for image in gallery_data %}
+                    <div class="image-item">
+                        <img src="{{ image }}" alt="Image">
+                        <button class="remove-button" onclick="removeImage('{{ image }}')">X</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <input type="file" class="form-control" name="images" multiple>
+                <br>
+                {{ form.show|as_crispy_field }}
+                <button class="btn main-btn" type="submit">Save</button>
+                <a href="{% url 'cards:user_dashboard' %}" class="btn main-btn">Back</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+
+
+<script>
+    function removeImage(imageUrl) {
+        const imageContainer = document.getElementById('image-container');
+        const imagesData = document.getElementById('images-data');
+        const currentImages = JSON.parse(imagesData.value || '[]');
+        const filteredImages = currentImages.filter(url => url !== imageUrl);
+        imagesData.value = JSON.stringify(filteredImages);
+        imageContainer.innerHTML = filteredImages.map(url => `
+            <div class="image-item">
+                <img src="${url}" alt="Image">
+                <button class="remove-button" onclick="removeImage('${url}')">X</button>
+            </div>
+        `).join('');
+    }
+</script>
+{% endblock %}

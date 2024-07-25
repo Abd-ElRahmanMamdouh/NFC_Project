@@ -226,3 +226,25 @@
     display: inline !important;
     width: 30% !important;
 }
+
+.image-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+.image-item {
+    margin: 5px;
+    position: relative;
+}
+.image-item img {
+    max-width: 150px;
+    max-height: 150px;
+}
+.remove-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+}

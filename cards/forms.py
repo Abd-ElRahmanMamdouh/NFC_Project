@@ -1,6 +1,9 @@
+from core.validators import validate_file_size
 from django import forms
-from settings.models import ProductGroup, PRODUCTS_CHOICES
-from .models import PurchasingCode, NFCCard
+from django.core.validators import FileExtensionValidator
+from settings.models import PRODUCTS_CHOICES, ProductGroup
+
+from .models import NFCCard, PurchasingCode
 
 
 class URLBulkCreateForm(forms.Form):
@@ -73,3 +76,47 @@ class NFCCardForm(forms.ModelForm):
             raise forms.ValidationError("Passwords do not match")
 
         return cleaned_data
+
+
+class BusinessCardForm(forms.Form):
+    title = forms.CharField(max_length=255)
+    desc = forms.CharField(label="Description", max_length=255)
+    logo = forms.ImageField(required=False)
+    show = forms.BooleanField(label="Select This Product" ,required=False)
+
+
+class GalleryForm(forms.Form):
+    images = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False)
+    show = forms.BooleanField(label="Select This Product" ,required=False)
+
+
+class RedirectUrlForm(forms.Form):
+    url = forms.URLField(required=False)
+    show = forms.BooleanField(label="Select This Product" ,required=False)
+
+
+class VideoMessageForm(forms.Form):
+    video = forms.FileField(label="Video Message",
+        validators=[FileExtensionValidator(allowed_extensions=['mp4','mkv']),
+                    validate_file_size],
+                    )
+    show = forms.BooleanField(label="Select This Product" ,required=False)
+
+
+class ProductViewerForm(forms.Form):
+    images = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False)
+    title = forms.CharField(max_length=255)
+    desc = forms.CharField(label="Description", max_length=255)
+    show = forms.BooleanField(label="Select This Product" ,required=False)
+
+
+class PDFViewerFom(forms.Form):
+    file = forms.FileField(label="PDF File",
+        validators=[FileExtensionValidator(allowed_extensions=['pdf']),
+                    validate_file_size],
+                    )
+    show = forms.BooleanField(label="Select This Product" ,required=False)
+
+class LetterForm(forms.Form):
+    letter = forms.CharField(label="Your Letter", widget=forms.Textarea)
+    show = forms.BooleanField(label="Select This Product" ,required=False)

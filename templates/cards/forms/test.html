@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}
+Testing only
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container my-5 pt-5">
+    <h2 class="mainTopic">Testing only</h2>
+    <div class="card container">
+        <div class="card-body">
+            <h3 class="alert alert-warning text-center">{{ text }}</h3>
+            <a href="{% url 'cards:user_dashboard' %}" class="btn main-btn">Back</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

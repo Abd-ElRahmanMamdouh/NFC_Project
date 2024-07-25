@@ -1,13 +1,15 @@
 import uuid
-import re
+
+from core.mixins import DataSetMixin, ExportMixin, ExportWithInlineMixin
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth import get_user_model
+from django.db.models import JSONField
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import path, reverse
 from django.utils.safestring import mark_safe
-from core.mixins import ExportWithInlineMixin, ExportMixin, DataSetMixin
+from django_json_widget.widgets import JSONEditorWidget
 from settings.models import ProductGroup
 
 from .forms import CodeBulkCreateForm, URLBulkCreateForm
@@ -81,11 +83,14 @@ class PurchasingCodeResource(DataSetMixin):
 @admin.register(NFCCard)
 class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ["__str__", "get_url", "card_code", "created_at", "updated_at"]
-    fields = ["uuid", "user"]
+    fields = ["uuid", "user", "data"]
     readonly_fields = ["uuid", "batch"]
     search_fields = ["uuid", "card_code__code"]
     resource_class = NFCCardResource
     actions = ["export_selected_records"]
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget},
+    }
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)

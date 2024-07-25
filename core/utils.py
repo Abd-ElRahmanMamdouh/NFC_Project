@@ -1,5 +1,9 @@
 import random
 import string
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+from urllib.parse import urljoin
 
 
 def random_string_generator(size=10, chars=string.ascii_letters + string.digits):
@@ -24,3 +28,12 @@ def unique_password_generator(instance):
     if qs_exists:
         return unique_code_generator(instance)
     return new_password
+
+
+
+def handle_uploaded_file(request, f):
+    file_name = default_storage.save(f.name, ContentFile(f.read()))
+    relative_url = default_storage.url(file_name)
+    absolute_url = request.build_absolute_uri(relative_url)
+    print(absolute_url)
+    return absolute_url

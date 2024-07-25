@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'import_export',
     'hitcount',
+    'django_json_widget',
 
     # Project Apps
     'users.apps.UsersConfig',

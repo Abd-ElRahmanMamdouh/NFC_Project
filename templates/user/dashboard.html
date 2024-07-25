@@ -22,11 +22,32 @@ Dashboard
                     <h4>{{ card }} <a href="{{ card.get_absolute_url }}" class="btn main-btn" target="_blank">View on Site</a></h4>
                 </div>
                 <div class="card-body">
-                    <p>
-                        <a href="{% url 'cards:set_password' card.uuid card.pk %}" class="btn main-btn"> 
-                        {% if card.password %}Update Password {% else %}Set Password{% endif %}
-                        </a>
-                    </p>
+                    <div class="p-1">
+                        <a href="{% url 'cards:set_password' card.uuid card.pk %}" class="btn main-btn mb-1"> 
+                            {% if card.password %}Update Password {% else %}Set Password{% endif %}
+                            </a>
+                            <a href="{% url 'cards:update_business_card' card.uuid %}" class="btn main-btn mb-1"> 
+                            Update Business Card
+                            </a>
+                            <a href="{% url 'cards:update_gallery' card.uuid %}" class="btn main-btn mb-1"> 
+                            Update Gallery
+                            </a>
+                            <a href="{% url 'cards:update_redirect_url' card.uuid %}" class="btn main-btn mb-1"> 
+                            Update Redirect URL
+                            </a>
+                            <a href="{% url 'cards:update_video_message' card.uuid %}" class="btn main-btn mb-1"> 
+                            Update Video Message
+                            </a>
+                            <a href="{% url 'cards:update_product_viewer' card.uuid %}" class="btn main-btn mb-1"> 
+                            Update Product Viewer
+                            </a>
+                            <a href="{% url 'cards:update_pdf_viewer' card.uuid %}" class="btn main-btn mb-1"> 
+                            Update PDF Viewer
+                            </a>
+                            <a href="{% url 'cards:update_letter' card.uuid %}" class="btn main-btn mb-1"> 
+                            Update Letter
+                            </a>
+                    </div>
                     <p>Password: {% if card.password %}{{ card.password|mask_password }}{% else %}<span class="text-danger">{% trans 'not specified' %}</span>{% endif %}</p>
                     <p>
                         Views: <small class="ms-3"><i class="fa-regular fa-eye"></i> {{ hits }}</small>
