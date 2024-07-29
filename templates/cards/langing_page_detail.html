@@ -22,6 +22,16 @@
                         {% include 'cards/base/gallery.html' %}
                         {% elif card.data.choosen_product.product == "redirect_url" %}
                         {% include 'cards/base/redirect_url.html' %}
+                        {% elif card.data.choosen_product.product == "letter" %}
+                        {% include 'cards/base/letter.html' %}
+                        {% elif card.data.choosen_product.product == "video_message" %}
+                        {% include 'cards/base/video_message.html' %}
+                        {% elif card.data.choosen_product.product == "pdf_viewer" %}
+                        {% include 'cards/base/pdf_viewer.html' %}
+                        {% elif card.data.choosen_product.product == "product_viewer" %}
+                        {% include 'cards/base/product_viewer.html' %}
+                        {% else %}
+                        <p class="text-danger">No data in this page.</p>
                         {% endif %}
                     </div>
                     {% else %}
@@ -38,12 +48,22 @@
                     {% endif %}
                 {% else %}
                 <div class="col-md-12 text-center">
-                    {% if card.data.choosen_product == "business_card" %}
-                    {% include 'base/business_card.html' %}
-                    {% elif card.data.choosen_product == "gallery" %}
-                    {% include 'base/gallery.html' %}
-                    {% elif card.data.choosen_product == "redirect_url" %}
-                    {% include 'base/redirect_url.html' %}
+                    {% if card.data.choosen_product.product == "business_card" %}
+                    {% include 'cards/base/business_card.html' %}
+                    {% elif card.data.choosen_product.product == "gallery" %}
+                    {% include 'cards/base/gallery.html' %}
+                    {% elif card.data.choosen_product.product == "redirect_url" %}
+                    {% include 'cards/base/redirect_url.html' %}
+                    {% elif card.data.choosen_product.product == "letter" %}
+                    {% include 'cards/base/letter.html' %}
+                    {% elif card.data.choosen_product.product == "video_message" %}
+                    {% include 'cards/base/video_message.html' %}
+                    {% elif card.data.choosen_product.product == "pdf_viewer" %}
+                    {% include 'cards/base/pdf_viewer.html' %}
+                    {% elif card.data.choosen_product.product == "product_viewer" %}
+                    {% include 'cards/base/product_viewer.html' %}
+                    {% else %}
+                    <p class="text-danger">No data in this page.</p>
                     {% endif %}
                 </div>
                 {% endif %}

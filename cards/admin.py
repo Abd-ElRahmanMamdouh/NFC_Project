@@ -82,7 +82,7 @@ class PurchasingCodeResource(DataSetMixin):
 
 @admin.register(NFCCard)
 class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
-    list_display = ["__str__", "get_url", "card_code", "created_at", "updated_at"]
+    list_display = ["__str__", "get_url", "card_code", "user", "created_at", "updated_at"]
     fields = ["uuid", "user", "data"]
     readonly_fields = ["uuid", "batch"]
     search_fields = ["uuid", "card_code__code"]
@@ -164,7 +164,7 @@ class NFCCardAdmin(ExportMixin, admin.ModelAdmin):
 
 @admin.register(PurchasingCode)
 class PurchasingCodeAdmin(ExportMixin, admin.ModelAdmin):
-    list_display = ["__str__", "created_at", "updated_at"]
+    list_display = ["__str__", "card", "created_at", "updated_at"]
     fields = ["group", "product", "duration", "card", "code", "password"]
     readonly_fields = ["code", "password", "card"]
     search_fields = ["group__title", "product", "duration", "code__uuid"]

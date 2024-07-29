@@ -1,11 +1,10 @@
-from core.utils import handle_uploaded_file
+from core.utils import handle_uploaded_file, get_form_errors
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.utils.safestring import mark_safe
 from django.views.generic import ListView, UpdateView
 from hitcount.views import HitCountDetailView
 
@@ -37,6 +36,9 @@ def link_new_card(request, uidb64):
             return redirect("cards:link_new_card", uidb64=uidb64)
         card = get_object_or_404(NFCCard, uuid=uidb64)
         card.user = request.user
+        data = {}
+        data['choosen_product'] = {'product': ''}
+        card.data = data
         card.save()
         code.card = card
         code.save()
@@ -104,16 +106,24 @@ def update_business_card(request, uidb64):
             data['business_card'] = json_data
             if show:
                 data['choosen_product'] = {'product': 'business_card'}
-                data['redirect_url']['show'] = not show
-                data['gallery']['show'] = not show
+                if "redirect_url" in data:
+                    data['redirect_url']['show'] = not show
+                if "gallery" in data:
+                    data['gallery']['show'] = not show
+                if "letter" in data:
+                    data['letter']['show'] = not show
+                if "pdf_viewer" in data:
+                    data['pdf_viewer']['show'] = not show
+                if "video_message" in data:
+                    data['video_message']['show'] = not show
             card.data = data
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
             return redirect("cards:user_dashboard")
         else:
-            msg = mark_safe(form.errors)
-            messages.error(request, msg)
+            msg = get_form_errors(form)
+            messages.error(request, msg[0])
             return redirect("cards:user_dashboard")
     else:
         if card.data:
@@ -148,26 +158,39 @@ def update_gallery(request, uidb64):
             data['gallery'] = {'images': image_urls, 'show': show}
             if show:
                 data['choosen_product'] = {'product': 'gallery'}
-                data['business_card']['show'] = not show
-                data['redirect_url']['show'] = not show
+                if "business_card" in data:
+                    data['business_card']['show'] = not show
+                if "redirect_url" in data:
+                    data['redirect_url']['show'] = not show
+                if "letter" in data:
+                    data['letter']['show'] = not show
+                if "pdf_viewer" in data:
+                    data['pdf_viewer']['show'] = not show
+                if "video_message" in data:
+                    data['video_message']['show'] = not show
             card.data = data
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
             return redirect("cards:user_dashboard")
         else:
-            msg = mark_safe(form.errors)
-            messages.error(request, msg)
+            msg = get_form_errors(form)
+            messages.error(request, msg[0])
             return redirect("cards:user_dashboard")
     else:
-        gallery_data = card.data.get('gallery', {}).get('images', [])
-        form = GalleryForm()
+        if card.data:
+            gallery_data = card.data.get('gallery', {}).get('images', [])
+            initial_data = card.data.get("gallery", {})
+        else:
+            gallery_data = None
+            initial_data = {}
+        form = GalleryForm(initial=initial_data)
 
     return render(request, 'cards/forms/gallery.html', {'form': form, 'gallery_data': gallery_data, 'uuid': card.uuid})
 
 
 @login_required
-def remove_image(request, uidb64, image_url):
+def remove_gallery_image(request, uidb64, image_url):
     card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
     data = card.data or {}
 
@@ -176,10 +199,26 @@ def remove_image(request, uidb64, image_url):
     if image_url in gallery_images:
         gallery_images.remove(image_url)
 
-    data['gallery'] = {'images': gallery_images}
+    data['gallery']['images'] = gallery_images
     card.data = data
     card.save()
     return redirect('cards:update_gallery', uidb64=uidb64)
+
+
+@login_required
+def remove_product_image(request, uidb64, image_url):
+    card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
+    data = card.data or {}
+
+    product_images = data.get('product_viewer', {}).get('images', [])
+
+    if image_url in product_images:
+        product_images.remove(image_url)
+
+    data['product_viewer']['images'] = product_images
+    card.data = data
+    card.save()
+    return redirect('cards:update_product_viewer', uidb64=uidb64)
 
 
 @login_required
@@ -199,16 +238,24 @@ def update_redirect_url(request, uidb64):
             data['redirect_url'] = json_data
             if show:
                 data['choosen_product'] = {'product': 'redirect_url'}
-                data['business_card']['show'] = not show
-                data['gallery']['show'] = not show
+                if "gallery" in data:
+                    data['gallery']['show'] = not show
+                if "business_card" in data:
+                    data['business_card']['show'] = not show
+                if "letter" in data:
+                    data['letter']['show'] = not show
+                if "pdf_viewer" in data:
+                    data['pdf_viewer']['show'] = not show
+                if "video_message" in data:
+                    data['video_message']['show'] = not show
             card.data = data
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
             return redirect("cards:user_dashboard")
         else:
-            msg = mark_safe(form.errors)
-            messages.error(request, msg)
+            msg = get_form_errors(form)
+            messages.error(request, msg[0])
             return redirect("cards:user_dashboard")
     else:
         if card.data:
@@ -222,23 +269,213 @@ def update_redirect_url(request, uidb64):
 
 @login_required
 def update_video_message(request, uidb64):
-    text = "This Page is under development"
-    return render(request, 'cards/forms/test.html', {'text': text})
+    card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
+    if request.method == "POST":
+        form = VideoMessageForm(request.POST, request.FILES)
+        if form.is_valid():
+            show = form.cleaned_data.get('show')
+            video = request.FILES.get('video')
+
+            existing_data = card.data or {}
+            existing_video_url = existing_data.get('video_message', {}).get('video_url', '')
+            video_url = handle_uploaded_file(request, video) if video else existing_video_url
+            json_data = {
+                'video': video.name,
+                'video_url': video_url,
+                'show': show
+            }
+            data = existing_data
+            data['video_message'] = json_data
+            if show:
+                data['choosen_product'] = {'product': 'video_message'}
+                if "redirect_url" in data:
+                    data['redirect_url']['show'] = not show
+                if "gallery" in data:
+                    data['gallery']['show'] = not show
+                if "business_card" in data:
+                    data['business_card']['show'] = not show
+                if "letter" in data:
+                    data['letter']['show'] = not show
+                if "pdf_viewer" in data:
+                    data['pdf_viewer']['show'] = not show
+            card.data = data
+            card.save()
+            msg = "Updated Successfully"
+            messages.success(request, msg)
+            return redirect("cards:user_dashboard")
+        else:
+            msg = get_form_errors(form)
+            messages.error(request, msg[0])
+            return redirect("cards:user_dashboard")
+    else:
+        if card.data:
+            initial_data = card.data.get('video_message', {})
+            video_name = initial_data.get('video', '')
+        else:
+            initial_data = {}
+            video_name = None
+        form = VideoMessageForm(initial=initial_data)
+    
+    return render(request, 'cards/forms/video_message.html', {'form': form, 'video_name': video_name})
 
 
 @login_required
 def update_product_viewer(request, uidb64):
-    text = "This Page is under development"
-    return render(request, 'cards/forms/test.html', {'text': text})
+    card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
+    
+    if request.method == 'POST':
+        form = ProductViewerForm(request.POST, request.FILES)
+        product_images = None
+        if form.is_valid():
+            files = request.FILES.getlist('images')
+            title = form.cleaned_data.get('title')
+            desc = form.cleaned_data.get('desc')
+            show = form.cleaned_data.get('show')
+            existing_data = card.data or {}
+            existing_images = existing_data.get('product_viewer', {}).get('images', [])
+            image_urls = existing_images or []
+            for file in files:
+                file_url = handle_uploaded_file(request, file)
+                image_urls.append(file_url)
+            
+            data = existing_data
+            json_data = {
+                'images': image_urls,
+                'title': title,
+                'desc': desc,
+                'show': show
+            }
+            data['product_viewer'] = json_data
+            if show:
+                data['choosen_product'] = {'product': 'product_viewer'}
+                if "business_card" in data:
+                    data['business_card']['show'] = not show
+                if "gallery" in data:
+                    data['gallery']['show'] = not show
+                if "redirect_url" in data:
+                    data['redirect_url']['show'] = not show
+                if "letter" in data:
+                    data['letter']['show'] = not show
+                if "pdf_viewer" in data:
+                    data['pdf_viewer']['show'] = not show
+                if "video_message" in data:
+                    data['video_message']['show'] = not show
+            card.data = data
+            card.save()
+            msg = "Updated Successfully"
+            messages.success(request, msg)
+            return redirect("cards:user_dashboard")
+        else:
+            msg = get_form_errors(form)
+            messages.error(request, msg[0])
+            return redirect("cards:user_dashboard")
+    else:
+        if card.data:
+            initial_data = card.data.get('product_viewer', {})
+            product_images = card.data.get('product_viewer', {}).get('images', [])
+        else:
+            initial_data = {}
+            product_images = None
+        form = ProductViewerForm(initial=initial_data)
+
+    return render(request, 'cards/forms/product_viewer.html', {'form': form, 'product_images': product_images, 'uuid': card.uuid})
 
 
 @login_required
 def update_pdf_viewer(request, uidb64):
-    text = "This Page is under development"
-    return render(request, 'cards/forms/test.html', {'text': text})
+    card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
+    if request.method == "POST":
+        form = PDFViewerFom(request.POST, request.FILES)
+        if form.is_valid():
+            show = form.cleaned_data.get('show')
+            file = request.FILES.get('file')
+
+            existing_data = card.data or {}
+            existing_file_url = existing_data.get('pdf_viewer', {}).get('file_url', '')
+            file_url = handle_uploaded_file(request, file) if file else existing_file_url
+            json_data = {
+                'file': file.name,
+                'file_url': file_url,
+                'show': show
+            }
+            data = existing_data
+            data['pdf_viewer'] = json_data
+            if show:
+                data['choosen_product'] = {'product': 'pdf_viewer'}
+                if "redirect_url" in data:
+                    data['redirect_url']['show'] = not show
+                if "gallery" in data:
+                    data['gallery']['show'] = not show
+                if "business_card" in data:
+                    data['business_card']['show'] = not show
+                if "letter" in data:
+                    data['letter']['show'] = not show
+                if "video_message" in data:
+                    data['video_message']['show'] = not show
+            card.data = data
+            card.save()
+            msg = "Updated Successfully"
+            messages.success(request, msg)
+            return redirect("cards:user_dashboard")
+        else:
+            msg = get_form_errors(form)
+            messages.error(request, msg[0])
+            return redirect("cards:user_dashboard")
+    else:
+        if card.data:
+            initial_data = card.data.get('pdf_viewer', {})
+            file_name = initial_data.get('file', '')
+        else:
+            initial_data = {}
+            file_name = None
+        form = PDFViewerFom(initial=initial_data)
+    
+    return render(request, 'cards/forms/pdf_viewer.html', {'form': form, 'file_name': file_name})
+
 
 
 @login_required
 def update_letter(request, uidb64):
-    text = "This Page is under development"
-    return render(request, 'cards/forms/test.html', {'text': text})
+    card = get_object_or_404(NFCCard, uuid=uidb64, user=request.user)
+    if request.method == "POST":
+        form = LetterForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data.get('title')
+            text = form.cleaned_data.get('text')
+            show = form.cleaned_data.get('show')
+
+            existing_data = card.data or {}
+            json_data = {
+                'title': title,
+                'text': text,
+                'show': show
+            }
+            data = existing_data
+            data['letter'] = json_data
+            if show:
+                data['choosen_product'] = {'product': 'letter'}
+                if "redirect_url" in data:
+                    data['redirect_url']['show'] = not show
+                if "gallery" in data:
+                    data['gallery']['show'] = not show
+                if "business_card" in data:
+                    data['business_card']['show'] = not show
+                if "pdf_viewer" in data:
+                    data['pdf_viewer']['show'] = not show
+            card.data = data
+            card.save()
+            msg = "Updated Successfully"
+            messages.success(request, msg)
+            return redirect("cards:user_dashboard")
+        else:
+            msg = get_form_errors(form)
+            messages.error(request, msg[0])
+            return redirect("cards:user_dashboard")
+    else:
+        if card.data:
+            initial_data = card.data.get('letter', {})
+        else:
+            initial_data = {}
+        form = LetterForm(initial=initial_data)
+    
+    return render(request, 'cards/forms/letter.html', {'form': form})

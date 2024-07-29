@@ -35,5 +35,12 @@ def handle_uploaded_file(request, f):
     file_name = default_storage.save(f.name, ContentFile(f.read()))
     relative_url = default_storage.url(file_name)
     absolute_url = request.build_absolute_uri(relative_url)
-    print(absolute_url)
     return absolute_url
+
+
+def get_form_errors(form):
+    error_messages = []
+    for field, errors in form.errors.items():
+        for error in errors:
+            error_messages.append(f"{field}: {error}")
+    return error_messages

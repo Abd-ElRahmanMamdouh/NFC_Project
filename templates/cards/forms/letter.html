@@ -14,7 +14,6 @@ Update Letter
         <div class="card-body">
             <form method="POST" class="mb-4" enctype="multipart/form-data">
                 {% csrf_token %}
-                <h3 class="alert alert-warning">{{ text }}</h3>
                 {{ form|crispy }}<br>
                 <button class="btn main-btn" type="submit">Save</button>
                 <a href="{% url 'cards:user_dashboard' %}" class="btn main-btn">Back</a>

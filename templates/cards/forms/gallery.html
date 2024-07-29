@@ -18,15 +18,12 @@ Update Gallery
                     {% for image in gallery_data %}
                     <div class="image-item">
                         <img src="{{ image }}" alt="Image">
-                        <a href="{% url 'cards:remove_image' uidb64=uuid image_url=image %}" class="remove-button btn btn-sm danger-btn">X</a>
+                        <a href="{% url 'cards:remove_gallery_image' uidb64=uuid image_url=image %}" class="remove-button btn btn-sm danger-btn">X</a>
 
                     </div>
                     {% endfor %}
                 </div>
-                <input type="file" class="form-control" name="images" multiple>
-                <input type="hidden" name="images-data" id="images-data" value='{{ gallery_data }}'>
-                <br>
-                {{ form.show|as_crispy_field }}
+                {{ form|crispy }}
                 <button class="btn main-btn" type="submit">Save</button>
                 <a href="{% url 'cards:user_dashboard' %}" class="btn main-btn">Back</a>
             </form>

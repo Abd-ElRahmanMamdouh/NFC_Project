@@ -12,7 +12,7 @@ Update Redirect URL
     <h2 class="mainTopic">Update Redirect URL</h2>
     <div class="card container">
         <div class="card-body">
-            <form method="POST" class="mb-4" enctype="multipart/form-data">
+            <form method="POST" class="mb-4">
                 {% csrf_token %}
                 {{ form|crispy }}<br>
                 <button class="btn main-btn" type="submit">Save</button>

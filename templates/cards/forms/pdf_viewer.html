@@ -15,6 +15,9 @@ Update PDF Viewer
             <form method="POST" class="mb-4" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form|crispy }}<br>
+                {% if file_name %}
+                <p>Current file: {{ file_name }}</p>
+                {% endif %}
                 <button class="btn main-btn" type="submit">Save</button>
                 <a href="{% url 'cards:user_dashboard' %}" class="btn main-btn">Back</a>
             </form>
