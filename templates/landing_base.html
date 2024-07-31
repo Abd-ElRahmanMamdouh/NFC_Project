@@ -15,18 +15,12 @@
 	<body>
 		<a href="#" id="scrollToTopBtn" class="scrollToTopBtn"></a>
 		<div id="preloader"></div>
-		<div class="wrapper">
-			{% if user.is_authenticated %}
-			{% include 'base/sidebar.html' %}
-			{% endif %}
-			<div id="content">
-				{% include 'base/navbar.html' %}
-				{% block content %}
-				{% endblock %}
-			</div>
-		</div>
+        <div id="page-container">
+            {% block content %}
+            {% endblock %}
+        </div>
 
-		{#{% include 'base/footer.html' %}#}
+		{% include 'base/footer.html' %}
 		{% block extrajs %}
 		{% endblock %}
 		{% include 'base/js.html' %}

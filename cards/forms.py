@@ -72,6 +72,12 @@ class NFCCardForm(forms.ModelForm):
         return cleaned_data
 
 
+class NFCCardTitleForm(forms.ModelForm):
+    class Meta:
+        model = NFCCard
+        fields = ["title"]
+
+
 class BusinessCardForm(forms.Form):
     title = forms.CharField(max_length=255)
     desc = forms.CharField(label="Description", max_length=255)

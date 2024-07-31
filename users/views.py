@@ -8,10 +8,6 @@ from django.http import HttpResponseRedirect
 from .forms import CustomLoginForm, RegisterForm, UserDetailChangeForm
 from .models import AuthToken
 from .utils import create_token
-from hitcount.models import HitCount
-from cards.models import NFCCard
-from django.db.models import Sum
-from django.contrib.contenttypes.models import ContentType
 
 
 class UserHomeView(LoginRequiredMixin, DetailView):
@@ -21,23 +17,6 @@ class UserHomeView(LoginRequiredMixin, DetailView):
 
     def get_object(self):
         return self.request.user
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(UserHomeView, self).get_context_data(*args, **kwargs)
-        user = self.request.user
-        content_types = ContentType.objects.all()
-        total_hits = 0
-        for content_type in content_types:
-            hits = HitCount.objects.filter(
-                content_type=content_type,
-                object_pk__in=NFCCard.objects.filter(user=user).values_list('id', flat=True)
-            ).aggregate(total_hits=Sum('hits'))['total_hits']
-
-            if hits:
-                total_hits += hits
-
-        context['total_hits'] = total_hits
-        return context
 
 
 class UserUpdateView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
@@ -112,7 +91,7 @@ class CustomLoginView(LoginView):
             if self.request.user.is_staff or self.request.user.is_superuser:
                 url = reverse("admin:index")
             else:
-                url = reverse("home")
+                url = reverse("cards:user_dashboard")
         return url
 
 
@@ -137,4 +116,4 @@ class CustomLogoutView(LogoutView):
             response.delete_cookie('uuid')
             return response
         else:
-            return HttpResponseRedirect(reverse("home"))
+            return HttpResponseRedirect(reverse("cards:user_dashboard"))

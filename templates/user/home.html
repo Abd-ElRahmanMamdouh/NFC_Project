@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load hitcount_tags %}
-{% load i18n %}
 {% load custom_filters %}
 {% block title %}
 Dashboard
@@ -12,36 +11,35 @@ Dashboard
 
 <div class="container mt-5">
     <div class="row">
-        {% include 'base/user_bar.html' %}
         <div class="col">
             <h3>Your Account Details</h3>
             <div class="card w-100 mt-3">
                 <div class="card-header">
                     <a href="{% url 'users:account_update' %}" class="btn primary-btn">
-                        <i class="fas fa-edit"></i>{% trans 'Edit' %}
+                        <i class="fas fa-edit"></i>Edit
                     </a>
                 </div>
                 <div class="card-body">
-                    <p>{% trans "Username" %}: {{ user.username }}</p>
-                    <p>{% trans "Email" %}:
+                    <p>Username: {{ user.username }}</p>
+                    <p>Email:
                         {% if user.email %}
                         {{ user.email }}
                         {% else %}
-                        <span class="text-danger">{% trans 'not specified' %}</span>
+                        <span class="text-danger">not specified</span>
                         {% endif %}
                     </p>
-                    <p>{% trans "First name" %}:
+                    <p>First name:
                         {% if user.first_name %}
                         {{ user.first_name }}
                         {% else %}
-                        <span class="text-danger">{% trans 'not specified' %}</span>
+                        <span class="text-danger">not specified</span>
                         {% endif %}
                     </p>
-                    <p>{% trans "Last name" %}:
+                    <p>Last name:
                         {% if user.last_name %}
                         {{ user.last_name }}
                         {% else %}
-                        <span class="text-danger">{% trans 'not specified' %}</span>
+                        <span class="text-danger">not specified</span>
                         {% endif %}
                     </p>
                 </div>
@@ -49,7 +47,6 @@ Dashboard
         </div>
     </div>
 </div>
-
 
 
 

@@ -76,6 +76,7 @@ class NFCCard(models.Model):
         null=True,
     )
     password = models.CharField("Password", blank=True, null=True, max_length=50)
+    title = models.CharField("Title", blank=True, null=True, max_length=50)
     data = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField("Created at", auto_now_add=True)
     updated_at = models.DateTimeField("Updated at", auto_now=True)
@@ -98,6 +99,8 @@ class NFCCard(models.Model):
     )
 
     def __str__(self):
+        if self.title:
+            return self.title
         return str(self.uuid)
 
     def get_absolute_url(self):

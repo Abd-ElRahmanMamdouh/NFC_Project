@@ -1,24 +1,23 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load i18n %}
 {% load crispy_forms_tags %}
 {% block title %}
-{% trans 'Edit account' %}
+Edit account
 {% endblock %}
 {% block content %}
 
 
 <div class="container my-5 pt-5">
-    <h2 class="mainTopic">{% trans 'Edit account' %}</h2>
+    <h2 class="mainTopic">Edit account</h2>
     <div class="card container">
         <div class="card-body">
             <form method="POST" class="mb-4">
                 {% csrf_token %}
                 {{ form|crispy }}<br>
-                <p>{% trans "Password" %}:<br> <a class="form-control link-style text-primary"
-                        href="{% url 'password_change' %}">{% trans 'click to change password' %}</a></p>
-                <button class="btn main-btn" type="submit">{% trans "Save" %}</button>
-                <a href="{% url 'users:user_profile' %}" class="btn main-btn">{% trans 'Back' %}</a>
+                <p>Password:<br> <a class="form-control link-style text-primary"
+                        href="{% url 'password_change' %}">Click to change password</a></p>
+                <button class="btn main-btn" type="submit">Save</button>
+                <a href="{% url 'users:user_profile' %}" class="btn main-btn">Back</a>
             </form>
         </div>
     </div>

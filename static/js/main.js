@@ -24,3 +24,17 @@ document.onreadystatechange = function() {
         document.querySelector("body").style.visibility = "visible";
     };
 };
+
+$(document).ready(function () {
+    $('#sidebarCollapse').on('click', function () {
+        $('#sidebar').toggleClass('side-li');
+    });
+});
+
+// Back button
+var backBtn = document.querySelector('#back-page');
+if (backBtn != null){
+    backBtn.onclick = function(){
+        history.back()
+    }
+}

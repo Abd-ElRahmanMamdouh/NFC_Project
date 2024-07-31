@@ -1,16 +1,22 @@
-from core.utils import handle_uploaded_file, get_form_errors
+from cards.models import NFCCard
+from core.utils import get_form_errors, handle_uploaded_file
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Sum
+from django.db.models.functions import ExtractMonth
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import ListView, UpdateView
+from django.utils import timezone
+from django.views.generic import DetailView, ListView, UpdateView
+from hitcount.models import HitCount
 from hitcount.views import HitCountDetailView
 
 from .forms import (BusinessCardForm, GalleryForm, LetterForm, NFCCardForm,
-                    PDFViewerFom, ProductViewerForm, RedirectUrlForm,
-                    VideoMessageForm)
+                    NFCCardTitleForm, PDFViewerFom, ProductViewerForm,
+                    RedirectUrlForm, VideoMessageForm)
 from .models import NFCCard, PurchasingCode
 
 
@@ -19,6 +25,16 @@ class NFCCardView(HitCountDetailView):
     model = NFCCard
     context_object_name = "card"
     count_hit = True
+
+    def get_object(self, queryset=None):
+        uuid = self.kwargs.get("uidb64")
+        return get_object_or_404(self.model, uuid=uuid)
+
+
+class NFCCardDetailView(DetailView):
+    template_name = "cards/card_detail.html"
+    model = NFCCard
+    context_object_name = "card"
 
     def get_object(self, queryset=None):
         uuid = self.kwargs.get("uidb64")
@@ -67,8 +83,7 @@ def check_password(request, uidb64):
 class NFCCardUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = NFCCard
     template_name = 'base/forms/create_update.html'
-    success_message = "Password successfully updated"
-    success_url = reverse_lazy("cards:user_dashboard")
+    success_message = "Card successfully updated"
     form_class = NFCCardForm
 
     def get_queryset(self):
@@ -76,10 +91,50 @@ class NFCCardUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         qs = self.model.objects.filter(user=user)
         return qs
 
+    def get_success_url(self):
+          uidb64=self.kwargs['uidb64']
+          return reverse_lazy('cards:card_detail', kwargs={'uidb64': uidb64})
+
+
+class NFCCardUpdateTitle(NFCCardUpdateView):
+    form_class = NFCCardTitleForm
+
 
 class NFCCardListView(LoginRequiredMixin, ListView):
     model = NFCCard
     template_name = 'user/dashboard.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(NFCCardListView, self).get_context_data(*args, **kwargs)
+        user = self.request.user
+        content_types = ContentType.objects.all()
+        total_hits = 0
+        for content_type in content_types:
+            hits = HitCount.objects.filter(
+                content_type=content_type,
+                object_pk__in=NFCCard.objects.filter(user=user).values_list('id', flat=True)
+            ).aggregate(total_hits=Sum('hits'))['total_hits']
+
+            if hits:
+                total_hits += hits
+
+        context['total_hits'] = total_hits
+        current_year = timezone.now().year
+        monthly_hits = (
+            HitCount.objects.filter(
+                content_type__in=content_types,
+                object_pk__in=NFCCard.objects.filter(user=user).values_list('id', flat=True),
+                modified__year=current_year
+            ).annotate(month=ExtractMonth('modified'))
+            .values('month')
+            .annotate(total_hits=Sum('hits'))
+            .order_by('month')
+        )
+        hits_by_month = {i: 0 for i in range(1, 13)}
+        for entry in monthly_hits:
+            hits_by_month[entry['month']] = entry['total_hits']
+        context['hits_by_month'] = hits_by_month
+        return context
 
 
 @login_required
@@ -134,7 +189,7 @@ def update_business_card(request, uidb64):
             logo_url = None
         form = BusinessCardForm(initial=initial_data)
     
-    return render(request, 'cards/forms/business_card.html', {'form': form, 'logo_url': logo_url})
+    return render(request, 'cards/forms/business_card.html', {'form': form, 'logo_url': logo_url, "active": "dashboard"})
 
 
 @login_required
@@ -186,7 +241,7 @@ def update_gallery(request, uidb64):
             initial_data = {}
         form = GalleryForm(initial=initial_data)
 
-    return render(request, 'cards/forms/gallery.html', {'form': form, 'gallery_data': gallery_data, 'uuid': card.uuid})
+    return render(request, 'cards/forms/gallery.html', {'form': form, 'gallery_data': gallery_data, 'uuid': card.uuid, "active": "dashboard"})
 
 
 @login_required
@@ -264,7 +319,7 @@ def update_redirect_url(request, uidb64):
             initial_data = {}
         form = RedirectUrlForm(initial=initial_data)
     
-    return render(request, 'cards/forms/redirect_url.html', {'form': form})
+    return render(request, 'cards/forms/redirect_url.html', {'form': form, "active": "dashboard"})
 
 
 @login_required
@@ -316,7 +371,7 @@ def update_video_message(request, uidb64):
             video_name = None
         form = VideoMessageForm(initial=initial_data)
     
-    return render(request, 'cards/forms/video_message.html', {'form': form, 'video_name': video_name})
+    return render(request, 'cards/forms/video_message.html', {'form': form, 'video_name': video_name, "active": "dashboard"})
 
 
 @login_required
@@ -378,7 +433,7 @@ def update_product_viewer(request, uidb64):
             product_images = None
         form = ProductViewerForm(initial=initial_data)
 
-    return render(request, 'cards/forms/product_viewer.html', {'form': form, 'product_images': product_images, 'uuid': card.uuid})
+    return render(request, 'cards/forms/product_viewer.html', {'form': form, 'product_images': product_images, 'uuid': card.uuid, "active": "dashboard"})
 
 
 @login_required
@@ -430,7 +485,7 @@ def update_pdf_viewer(request, uidb64):
             file_name = None
         form = PDFViewerFom(initial=initial_data)
     
-    return render(request, 'cards/forms/pdf_viewer.html', {'form': form, 'file_name': file_name})
+    return render(request, 'cards/forms/pdf_viewer.html', {'form': form, 'file_name': file_name, "active": "dashboard"})
 
 
 
@@ -478,4 +533,4 @@ def update_letter(request, uidb64):
             initial_data = {}
         form = LetterForm(initial=initial_data)
     
-    return render(request, 'cards/forms/letter.html', {'form': form})
+    return render(request, 'cards/forms/letter.html', {'form': form, "active": "dashboard"})

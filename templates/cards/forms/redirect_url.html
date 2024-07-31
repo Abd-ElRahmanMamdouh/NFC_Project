@@ -16,7 +16,7 @@ Update Redirect URL
                 {% csrf_token %}
                 {{ form|crispy }}<br>
                 <button class="btn main-btn" type="submit">Save</button>
-                <a href="{% url 'cards:user_dashboard' %}" class="btn main-btn">Back</a>
+                <a class="btn main-btn" id="back-page">Back</a>
             </form>
         </div>
     </div>

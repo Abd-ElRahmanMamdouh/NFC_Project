@@ -1,3 +1,5 @@
+{% load static %}
+{% comment %}
 <nav class="navbar navbar-expand-lg navbar navbar-light bg-light">
     <div class="container">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -20,6 +22,33 @@
                 </li>
                 {% endif %}
             </ul>
+        </div>
+    </div>
+</nav>
+
+{% endcomment %}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid  text-center">
+        {% if user.is_authenticated %}
+        <button type="button" id="sidebarCollapse" class="btn dark-btn me-3">
+            <i class="fas fa-align-left"></i>
+        </button>
+        {% endif %}
+        <button class="btn dark-btn d-inline-block d-lg-none ml-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-align-justify"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            {% if not user.is_authenticated %}
+            <ul class="nav navbar-nav ml-end">
+                <li class="nav-item {% if active == 'login' %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'users:login' %}">login</a>
+                </li>
+                <li class="nav-item {% if active == 'register' %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'users:register' %}">Register</a>
+                </li>
+            </ul>
+            {% endif %}
         </div>
     </div>
 </nav>

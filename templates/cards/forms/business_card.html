@@ -9,7 +9,7 @@ Update Business Card
 {% block content %}
 
 <div class="container my-5 pt-5">
-    <h2 class="mainTopic">Update Business Card</h2>
+    <h2 class="mainTopic">Update Business Card {{ object }}</h2>
     <div class="card container">
         <div class="card-body">
             <form method="POST" class="mb-4" enctype="multipart/form-data">
@@ -21,7 +21,7 @@ Update Business Card
                 {% endif %}
                 <br>
                 <button class="btn main-btn" type="submit">Save</button>
-                <a href="{% url 'cards:user_dashboard' %}" class="btn main-btn">Back</a>
+                <a class="btn main-btn" id="back-page">Back</a>
             </form>
         </div>
     </div>
