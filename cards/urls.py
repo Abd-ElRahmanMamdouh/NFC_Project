@@ -32,6 +32,7 @@ urlpatterns = [
         name="update_card_title",
     ),
     path("cards-link/<uidb64>/", views.link_new_card, name="link_new_card"),
+    path("cards-add/", views.add_new_card, name="add_new_card"),
     path("check-password/<uidb64>/", views.check_password, name="check_password"),
     path("card-update/update-business-card/<uidb64>/", views.update_business_card, name="update_business_card"),
     path("card-update/update-gallery/<uidb64>/", views.update_gallery, name="update_gallery"),

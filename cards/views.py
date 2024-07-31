@@ -50,7 +50,12 @@ def link_new_card(request, uidb64):
             msg = "Wrong Code or used before"
             messages.error(request, msg)
             return redirect("cards:link_new_card", uidb64=uidb64)
-        card = get_object_or_404(NFCCard, uuid=uidb64)
+        try:
+            card = NFCCard.objects.get(uuid=uidb64, user__isnull=True)
+        except NFCCard.DoesNotExist:
+            msg = "Wrong Card uuid or used before"
+            messages.error(request, msg)
+            return redirect("cards:link_new_card", uidb64=uidb64)
         card.user = request.user
         data = {}
         data['choosen_product'] = {'product': ''}
@@ -60,8 +65,38 @@ def link_new_card(request, uidb64):
         code.save()
         msg = "Card Linked Successfully"
         messages.success(request, msg)
-        return redirect("home")
+        return redirect("cards:user_dashboard")
     return render(request, 'cards/card_register.html', {})
+
+
+@login_required
+def add_new_card(request):
+    if request.method == "POST":
+        code = request.POST.get('code')
+        uuid = request.POST.get('uuid')
+        try:
+            code = PurchasingCode.objects.get(code=code, card__isnull=True)
+        except PurchasingCode.DoesNotExist:
+            msg = "Wrong Code or used before"
+            messages.error(request, msg)
+            return redirect("cards:add_new_card")
+        try:
+            card = NFCCard.objects.get(uuid=uuid, user__isnull=True)
+        except NFCCard.DoesNotExist:
+            msg = "Wrong Card uuid or used before"
+            messages.error(request, msg)
+            return redirect("cards:add_new_card")            
+        card.user = request.user
+        data = {}
+        data['choosen_product'] = {'product': ''}
+        card.data = data
+        card.save()
+        code.card = card
+        code.save()
+        msg = "Card Linked Successfully"
+        messages.success(request, msg)
+        return redirect("cards:user_dashboard")
+    return render(request, 'cards/forms/card_add.html', {})
 
 
 def check_password(request, uidb64):
