@@ -109,6 +109,7 @@ class RedirectUrlForm(forms.Form):
 class VideoMessageForm(forms.Form):
     video = forms.FileField(
         label="Video Message",
+        required=False,
         validators=[
             FileExtensionValidator(allowed_extensions=["mp4"]),
             FileSizeValidator(max_size=52428800),
@@ -136,6 +137,7 @@ class ProductViewerForm(forms.Form):
 class PDFViewerFom(forms.Form):
     file = forms.FileField(
         label="PDF File",
+        required=False,
         validators=[
             FileExtensionValidator(allowed_extensions=["pdf"]),
             FileSizeValidator(max_size=20971520),

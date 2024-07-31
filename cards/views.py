@@ -175,11 +175,11 @@ def update_business_card(request, uidb64):
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
         else:
             msg = get_form_errors(form)
             messages.error(request, msg[0])
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
     else:
         if card.data:
             initial_data = card.data.get('business_card', {})
@@ -227,11 +227,11 @@ def update_gallery(request, uidb64):
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
         else:
             msg = get_form_errors(form)
             messages.error(request, msg[0])
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
     else:
         if card.data:
             gallery_data = card.data.get('gallery', {}).get('images', [])
@@ -257,7 +257,7 @@ def remove_gallery_image(request, uidb64, image_url):
     data['gallery']['images'] = gallery_images
     card.data = data
     card.save()
-    return redirect('cards:update_gallery', uidb64=uidb64)
+    return redirect('cards:update_gallery', uidb64)
 
 
 @login_required
@@ -273,7 +273,7 @@ def remove_product_image(request, uidb64, image_url):
     data['product_viewer']['images'] = product_images
     card.data = data
     card.save()
-    return redirect('cards:update_product_viewer', uidb64=uidb64)
+    return redirect('cards:update_product_viewer', uidb64)
 
 
 @login_required
@@ -307,11 +307,11 @@ def update_redirect_url(request, uidb64):
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
         else:
             msg = get_form_errors(form)
             messages.error(request, msg[0])
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
     else:
         if card.data:
             initial_data = card.data.get("redirect_url", {})
@@ -333,9 +333,14 @@ def update_video_message(request, uidb64):
 
             existing_data = card.data or {}
             existing_video_url = existing_data.get('video_message', {}).get('video_url', '')
+            existing_video_name = existing_data.get('video_message', {}).get('video', '')
             video_url = handle_uploaded_file(request, video) if video else existing_video_url
+            if video:
+                video_name = video.name
+            else:
+                video_name = existing_video_name
             json_data = {
-                'video': video.name,
+                'video': video_name,
                 'video_url': video_url,
                 'show': show
             }
@@ -357,11 +362,11 @@ def update_video_message(request, uidb64):
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
         else:
             msg = get_form_errors(form)
             messages.error(request, msg[0])
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
     else:
         if card.data:
             initial_data = card.data.get('video_message', {})
@@ -419,11 +424,11 @@ def update_product_viewer(request, uidb64):
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
         else:
             msg = get_form_errors(form)
             messages.error(request, msg[0])
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
     else:
         if card.data:
             initial_data = card.data.get('product_viewer', {})
@@ -447,9 +452,14 @@ def update_pdf_viewer(request, uidb64):
 
             existing_data = card.data or {}
             existing_file_url = existing_data.get('pdf_viewer', {}).get('file_url', '')
+            existing_file_name = existing_data.get('pdf_viewer', {}).get('file', '')
             file_url = handle_uploaded_file(request, file) if file else existing_file_url
+            if file:
+                file_name = file.name
+            else:
+                file_name = existing_file_name
             json_data = {
-                'file': file.name,
+                'file': file_name,
                 'file_url': file_url,
                 'show': show
             }
@@ -471,11 +481,11 @@ def update_pdf_viewer(request, uidb64):
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
         else:
             msg = get_form_errors(form)
             messages.error(request, msg[0])
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
     else:
         if card.data:
             initial_data = card.data.get('pdf_viewer', {})
@@ -521,11 +531,11 @@ def update_letter(request, uidb64):
             card.save()
             msg = "Updated Successfully"
             messages.success(request, msg)
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
         else:
             msg = get_form_errors(form)
             messages.error(request, msg[0])
-            return redirect("cards:user_dashboard")
+            return redirect("cards:card_detail", uidb64)
     else:
         if card.data:
             initial_data = card.data.get('letter', {})
